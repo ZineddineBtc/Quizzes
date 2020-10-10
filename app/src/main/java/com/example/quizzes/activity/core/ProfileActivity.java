@@ -11,14 +11,17 @@ import android.text.Html;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.quizzes.R;
 import com.example.quizzes.StaticClass;
+import com.example.quizzes.adapter.NetworkAdapter;
 import com.example.quizzes.adapter.ProfileQuizzesAdapter;
 import com.example.quizzes.model.Quiz;
+import com.example.quizzes.model.User;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -28,20 +31,26 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class ProfileActivity extends AppCompatActivity {
 
+    LinearLayout shadeLL, networkLL;
     ImageView photoIV;
     TextView usernameTV, bioTV, followersCount, followingCount;
     Button followButton, unfollowButton;
-    RecyclerView quizzesRV;
+    RecyclerView quizzesRV, followersRV, followingRV;
     ProfileQuizzesAdapter adapter;
+    NetworkAdapter followersAdapter, followingAdapter;
     ArrayList<Quiz> quizList = new ArrayList<>();
     ArrayList<String> followers, following;
+    ArrayList<User> followersUsers = new ArrayList<>(),
+                    followingUsers = new ArrayList<>();
     FirebaseFirestore database;
     ProgressBar progressBar;
     String profileID, userID;
+    boolean networkShown;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +86,10 @@ public class ProfileActivity extends AppCompatActivity {
         });
         quizzesRV = findViewById(R.id.profileQuizzesRV);
         progressBar = findViewById(R.id.progressBar);
+        shadeLL = findViewById(R.id.shadeLL);
+        networkLL = findViewById(R.id.networkLL);
+        followersRV = findViewById(R.id.followersRV);
+        followingRV = findViewById(R.id.followingRV);
     }
     private void setProfileUI(final String userID){
         database.collection("users")
@@ -241,17 +254,84 @@ public class ProfileActivity extends AppCompatActivity {
                     }
                 });
     }
+    public void showNetwork(View view){
+        setNetworkRVs();
+        shadeLL.setVisibility(View.VISIBLE);
+        networkLL.setVisibility(View.VISIBLE);
+        networkShown = true;
+    }
+    private void setNetworkRVs(){
+        getFollowers();
+        Toast.makeText(getApplicationContext(), String.valueOf(followersUsers.size()), Toast.LENGTH_LONG).show();
+        followersAdapter = new NetworkAdapter(getApplicationContext(), followersUsers);
+        followersRV.setLayoutManager(new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.VERTICAL, false));
+        followersRV.setAdapter(followersAdapter);
+        getFollowing();
+        followingAdapter = new NetworkAdapter(getApplicationContext(), followingUsers);
+        followingRV.setLayoutManager(new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.VERTICAL, false));
+        followingRV.setAdapter(followingAdapter);
+    }
+    private void getFollowers(){
+        for (String s: followers){
+            database.collection("users")
+                    .document(s)
+                    .get()
+                    .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                            if(task.isSuccessful()){
+                                DocumentSnapshot document = task.getResult();
+                                if(document.exists()){
+                                    User user = new User();
+                                    user.setId(document.getId());
+                                    user.setUsername(String.valueOf(document.get("username")));
+                                    followersUsers.add(user);
+                                    followersAdapter.notifyDataSetChanged();
+                                }
+                            }
+                        }
+                    });
+        }
+    }
+    private void getFollowing(){
+        for (String s: following){
+            database.collection("users")
+                    .document(s)
+                    .get()
+                    .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                            if(task.isSuccessful()){
+                                DocumentSnapshot document = task.getResult();
+                                if(document.exists()){
+                                    User user = new User();
+                                    user.setId(document.getId());
+                                    user.setUsername(String.valueOf(document.get("username")));
+                                    followingUsers.add(user);
+                                    followingAdapter.notifyDataSetChanged();
+                                }
+                            }
+                        }
+                    });
+        }
+    }
     public void setActionBarTitle(String title){
         Objects.requireNonNull(getSupportActionBar()).setHomeAsUpIndicator(R.drawable.ic_arrow_back_white);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
         Objects.requireNonNull(getSupportActionBar()).setTitle(
-                Html.fromHtml("<font color=\"#1976D2\"> "+title+" </font>")
+                Html.fromHtml("<font color=\"#ffffff\"> "+title+" </font>")
         );
     }
     @Override
     public void onBackPressed() {
-        startActivity(new Intent(getApplicationContext(), CoreActivity.class)
-                .putExtra(StaticClass.TO, StaticClass.TIMELINE));
+        if (!networkShown) {
+            startActivity(new Intent(getApplicationContext(), CoreActivity.class)
+                    .putExtra(StaticClass.TO, StaticClass.TIMELINE));
+        }else{
+            shadeLL.setVisibility(View.GONE);
+            networkLL.setVisibility(View.GONE);
+            networkShown = false;
+        }
     }
     @Override
     public boolean onSupportNavigateUp() {
