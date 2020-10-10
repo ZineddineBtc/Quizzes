@@ -20,6 +20,7 @@ public class StaticClass {
     public static String mySimpleDateFormat = "dd-MM-yyyy";
     public static String TO = "to";
     public static String SETTINGS = "settings";
+    public static String TIMELINE = "timeline";
 
 
     public static ArrayList<String> allInterests = new ArrayList<String>(){{

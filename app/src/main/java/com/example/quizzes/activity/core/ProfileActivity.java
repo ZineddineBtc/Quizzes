@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Html;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -21,6 +22,7 @@ import com.example.quizzes.model.Quiz;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -31,13 +33,15 @@ import java.util.Objects;
 public class ProfileActivity extends AppCompatActivity {
 
     ImageView photoIV;
-    TextView usernameTV, bioTV;
+    TextView usernameTV, bioTV, followersCount, followingCount;
+    Button followButton, unfollowButton;
     RecyclerView quizzesRV;
     ProfileQuizzesAdapter adapter;
     ArrayList<Quiz> quizList = new ArrayList<>();
+    ArrayList<String> followers, following;
     FirebaseFirestore database;
     ProgressBar progressBar;
-    String userID;
+    String profileID, userID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,8 +49,9 @@ public class ProfileActivity extends AppCompatActivity {
         setContentView(R.layout.activity_profile);
         findViewsByIds();
         database = FirebaseFirestore.getInstance();
-        userID = getIntent().getStringExtra(StaticClass.PROFILE_ID);
-        setProfileUI(userID);
+        userID = getSharedPreferences(StaticClass.SHARED_PREFERENCES, MODE_PRIVATE).getString(StaticClass.EMAIL, " ");
+        profileID = getIntent().getStringExtra(StaticClass.PROFILE_ID);
+        setProfileUI(profileID);
         setRecyclerView();
         getQuizzes();
     }
@@ -54,10 +59,26 @@ public class ProfileActivity extends AppCompatActivity {
         photoIV = findViewById(R.id.photoIV);
         usernameTV = findViewById(R.id.usernameTV);
         bioTV = findViewById(R.id.bioTV);
+        followersCount = findViewById(R.id.followersCountTV);
+        followingCount = findViewById(R.id.followingCountTV);
+        followButton = findViewById(R.id.followButton);
+        followButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                follow();
+            }
+        });
+        unfollowButton = findViewById(R.id.unfollowButton);
+        unfollowButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                unfollow();
+            }
+        });
         quizzesRV = findViewById(R.id.profileQuizzesRV);
         progressBar = findViewById(R.id.progressBar);
     }
-    private void setProfileUI(String userID){
+    private void setProfileUI(final String userID){
         database.collection("users")
                 .document(userID)
                 .get()
@@ -67,12 +88,35 @@ public class ProfileActivity extends AppCompatActivity {
                         if(task.isSuccessful()){
                             DocumentSnapshot document = task.getResult();
                             if(document.exists()){
-                                usernameTV.setText(document.get("username").toString());
-                                bioTV.setText(document.get("bio").toString());
+                                String username = String.valueOf(document.get("username"));
+                                usernameTV.setText(username);
+                                setActionBarTitle(username);
+                                bioTV.setText(String.valueOf(document.get("bio")));
+                                followersCount.setText(String.valueOf(document.get("followers-count")));
+                                followingCount.setText(String.valueOf(document.get("following-count")));
+                                followers = (ArrayList<String>) document.get("followers");
+                                setFollower();
+                                following = (ArrayList<String>) document.get("following");
+                                setFollowingUser();
                             }
                         }
                     }
                 });
+    }
+    private void setFollower(){
+        if(followers != null) {
+            if (followers.contains(userID)) {
+                followButton.setVisibility(View.GONE);
+                unfollowButton.setVisibility(View.VISIBLE);
+            }
+        }
+    }
+    private void setFollowingUser(){
+        if (following != null) {
+            if (following.contains(userID)) {
+                followButton.setText(R.string.follow_back);
+            }
+        }
     }
     private void setRecyclerView(){
         adapter = new ProfileQuizzesAdapter(getApplicationContext(), quizList);
@@ -81,7 +125,7 @@ public class ProfileActivity extends AppCompatActivity {
     }
     private void getQuizzes(){
         database.collection("quizzes")
-                .whereEqualTo("poster", userID)
+                .whereEqualTo("poster", profileID)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
@@ -119,6 +163,84 @@ public class ProfileActivity extends AppCompatActivity {
                     }
                 });
     }
+    private void follow(){
+        database.collection("users")
+                .document(profileID)
+                .update("followers", FieldValue.arrayUnion(userID))
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        incrementFollowersCount();
+                    }
+                });
+        followButton.setVisibility(View.GONE);
+        unfollowButton.setVisibility(View.VISIBLE);
+    }
+    private void incrementFollowersCount(){
+        int count = Integer.valueOf(followersCount.getText().toString()) + 1;
+        followersCount.setText(String.valueOf(count));
+        database.collection("users")
+                .document(profileID)
+                .update("followers-count", FieldValue.increment(1))
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        addUserFollowing();
+                    }
+                });
+    }
+    private void addUserFollowing(){
+        database.collection("users")
+                .document(userID)
+                .update("following", FieldValue.arrayUnion(profileID))
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        database.collection("users")
+                                .document(userID)
+                                .update("following-count", FieldValue.increment(1));
+                    }
+                });
+    }
+    private void unfollow(){
+        database.collection("users")
+                .document(profileID)
+                .update("followers", FieldValue.arrayRemove(userID))
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        decrementFollowersCount();
+                    }
+                });
+        followButton.setVisibility(View.VISIBLE);
+        unfollowButton.setVisibility(View.GONE);
+    }
+    private void decrementFollowersCount(){
+        int count = Integer.valueOf(followersCount.getText().toString()) - 1;
+        followersCount.setText(String.valueOf(count));
+        database.collection("users")
+                .document(profileID)
+                .update("followers-count", FieldValue.increment(-1))
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        removeUserFollowing();
+                    }
+                });
+    }
+    private void removeUserFollowing(){
+        database.collection("users")
+                .document(userID)
+                .update("following", FieldValue.arrayRemove(profileID))
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        database.collection("users")
+                                .document(userID)
+                                .update("following-count", FieldValue.increment(-1));
+                    }
+                });
+    }
     public void setActionBarTitle(String title){
         Objects.requireNonNull(getSupportActionBar()).setHomeAsUpIndicator(R.drawable.ic_arrow_back_white);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
@@ -129,7 +251,7 @@ public class ProfileActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         startActivity(new Intent(getApplicationContext(), CoreActivity.class)
-                .putExtra(StaticClass.TO, StaticClass.SETTINGS));
+                .putExtra(StaticClass.TO, StaticClass.TIMELINE));
     }
     @Override
     public boolean onSupportNavigateUp() {
