@@ -77,11 +77,10 @@ public class ProfileQuizzesAdapter extends RecyclerView.Adapter<ProfileQuizzesAd
     }
     private void setPercentage(ViewHolder holder, int position){
         StringBuilder percent = new StringBuilder();
-        int total = (int) (quizList.get(position).getCorrectCount() +
+        float total = (float) (quizList.get(position).getCorrectCount() +
                 quizList.get(position).getWrongCount());
         if(total != 0) {
-            int percentage = ((int)quizList.get(position).getCorrectCount())/total;
-            percentage *= 100;
+            float percentage = (quizList.get(position).getCorrectCount()/total)*100;
             percent.append(percentage).append("%");
         }else{
             percent.append("?%");
