@@ -47,7 +47,7 @@ public class ProfileFragment extends Fragment {
     private View fragmentView;
     private LinearLayout myQuizzesLL;
     private ImageView photoIV, editUsernameIV, editBioIV, editInterestsIV;
-    private TextView usernameTV, bioTV, emailTV, signOutTV, errorTV;
+    private TextView usernameTV, bioTV, emailTV, scoreTV, signOutTV, errorTV;
     private EditText usernameET, bioET;
     private RecyclerView userInterestsRV, allInterestsRV;
     private SharedPreferences sharedPreferences;
@@ -81,6 +81,7 @@ public class ProfileFragment extends Fragment {
         bioTV = fragmentView.findViewById(R.id.bioTV);
         bioET = fragmentView.findViewById(R.id.bioET);
         emailTV = fragmentView.findViewById(R.id.emailTV);
+        scoreTV = fragmentView.findViewById(R.id.scoreTV);
         userInterestsRV = fragmentView.findViewById(R.id.userInterestsRV);
         allInterestsRV = fragmentView.findViewById(R.id.allInterestsRV);
         editInterestsIV = fragmentView.findViewById(R.id.editInterestsIV);
@@ -110,6 +111,8 @@ public class ProfileFragment extends Fragment {
         });
         email = sharedPreferences.getString(StaticClass.EMAIL, "no email");
         emailTV.setText(email);
+        long score = sharedPreferences.getLong(StaticClass.SCORE, 0);
+        scoreTV.setText((int) score);
         setRecyclerViews();
         signOutTV.setOnClickListener(new View.OnClickListener() {
             @Override

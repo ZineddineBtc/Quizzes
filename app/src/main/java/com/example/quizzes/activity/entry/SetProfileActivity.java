@@ -92,9 +92,7 @@ public class SetProfileActivity extends AppCompatActivity {
                 101);
     }
     @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == 101) {
             if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                 // not granted
@@ -181,6 +179,7 @@ public class SetProfileActivity extends AppCompatActivity {
         editor.putString(StaticClass.USERNAME, username);
         editor.putStringSet(StaticClass.INTERESTS, new HashSet<>(userInterests));
         editor.putString(StaticClass.EMAIL, email);
+        editor.putLong(StaticClass.SCORE, 0);
         editor.apply();
         writeOnlineDatabase();
     }
@@ -188,6 +187,7 @@ public class SetProfileActivity extends AppCompatActivity {
         Map<String, Object> userReference = new HashMap<>();
         userReference.put("username", username);
         userReference.put("bio", "no bio");
+        userReference.put("score", 0);
         userReference.put("interests", userInterests);
         userReference.put("quizzes", new ArrayList<>());
         database.collection("users")

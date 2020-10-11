@@ -14,12 +14,15 @@ public class StaticClass {
     public static String USERNAME = "username";
     public static String EMAIL = "email";
     public static String INTERESTS = "interests";
+    public static String SCORE = "score";
     public static String PHOTO = "photo";
     public static String BIO = "bio";
     public static String PROFILE_ID = "profile";
     public static String mySimpleDateFormat = "dd-MM-yyyy";
     public static String TO = "to";
-    public static String SETTINGS = "settings";
+    public static String FROM = "from";
+    public static String NETWORK_ADAPTER = "network_adapter";
+    public static String BACK_TO_ID = "back_to_id";
     public static String TIMELINE = "timeline";
 
 

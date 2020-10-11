@@ -1,6 +1,7 @@
 package com.example.quizzes.adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +12,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.quizzes.R;
+import com.example.quizzes.StaticClass;
+import com.example.quizzes.activity.core.ProfileActivity;
 import com.example.quizzes.model.User;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -27,12 +30,12 @@ public class NetworkAdapter extends RecyclerView.Adapter<NetworkAdapter.ViewHold
     private List<User> list;
     private LayoutInflater mInflater;
     private ItemClickListener mClickListener;
-    private FirebaseFirestore database;
+    String backToID;
 
-    public NetworkAdapter(Context context, List<User> list) {
+    public NetworkAdapter(Context context, List<User> list, String backToID) {
         this.mInflater = LayoutInflater.from(context);
         this.list = list;
-        database = FirebaseFirestore.getInstance();
+        this.backToID = backToID;
     }
 
     @Override
@@ -56,16 +59,21 @@ public class NetworkAdapter extends RecyclerView.Adapter<NetworkAdapter.ViewHold
         ImageView photoIV;
         TextView usernameTV;
 
+        View v;
+
         public ViewHolder(final View itemView) {
             super(itemView);
             usernameTV = itemView.findViewById(R.id.usernameTV);
-
+            v = itemView;
         }
 
         @Override
         public void onClick(View view) {
             if (mClickListener != null)
                 mClickListener.onItemClick(view, getAdapterPosition());
+            v.getContext().startActivity(new Intent(v.getContext(), ProfileActivity.class)
+            .putExtra(StaticClass.PROFILE_ID, list.get(getAdapterPosition()).getId())
+            .putExtra(StaticClass.BACK_TO_ID, backToID));
         }
     }
 

@@ -12,7 +12,8 @@
         android:layout_height="wrap_content"
         android:text="Science"
         android:textSize="12sp"
-        android:padding="5dp"
+        android:paddingEnd="5dp"
+        android:paddingStart="5dp"
         android:textColor="@color/white"/>
 
 </LinearLayout>

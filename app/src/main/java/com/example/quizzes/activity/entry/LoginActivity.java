@@ -79,12 +79,13 @@ public class LoginActivity extends AppCompatActivity {
                     }
                 });
     }
-    public void setSharedPreferences(String email, String name, String bio,
+    public void setSharedPreferences(String email, String name, String bio, long score,
                                      HashSet<String> interests){
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(StaticClass.USERNAME, name);
         editor.putString(StaticClass.BIO, bio);
         editor.putString(StaticClass.EMAIL, email);
+        editor.putLong(StaticClass.SCORE, score);
         editor.putStringSet(StaticClass.INTERESTS, interests);
         editor.apply();
         progressDialog.dismiss();
@@ -105,8 +106,9 @@ public class LoginActivity extends AppCompatActivity {
                                 document.get("interests");
                         setSharedPreferences(
                                 document.getId(),
-                                document.get("username").toString(),
-                                document.get("bio").toString(),
+                                String.valueOf(document.get("username")),
+                                String.valueOf(document.get("bio")),
+                                (Long) document.get("score"),
                                 new HashSet<>(interests));
                     }
                 } else {

@@ -141,33 +141,13 @@
                 android:textColor="@color/white"
                 android:text="@string/unfollow"
                 android:background="@drawable/red_background_rounded_border"/>
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp">
-                <ImageView
-                    android:layout_width="0dp"
-                    android:layout_weight="0.2"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:src="@drawable/ic_logo_24p"/>
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="40dp"
-                    android:text="@string/quizzes"
-                    android:textSize="14sp"
-                    android:textColor="#000000"
-                    android:background="@color/white"
-                    android:layout_gravity="center_vertical"
-                    android:gravity="center_vertical"/>
-            </LinearLayout>
         </LinearLayout>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:orientation="vertical"
             android:background="@drawable/white_background_border"
+            android:layout_marginTop="5dp"
             android:layout_marginBottom="5dp"/>
         <ProgressBar
             android:id="@+id/progressBar"

@@ -49,6 +49,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     public void onBindViewHolder(ViewHolder holder, int position) {
         setPoster(holder, position);
         setPercentage(holder, position);
+        setAlreadyAnswered(holder, position);
         setLikesCount(holder, position);
         setDislikesCount(holder, position);
         holder.descriptionTV.setText(quizList.get(position).getDescription());
@@ -74,6 +75,12 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
                         }
                     }
                 });
+    }
+    private void setAlreadyAnswered(ViewHolder holder, int position){
+        if(quizList.get(position).getAnswersUsers().contains(
+                holder.sharedPreferences.getString(StaticClass.EMAIL, " "))){
+            holder.alreadyAnsweredTV.setVisibility(View.VISIBLE);
+        }
     }
     private void setPercentage(ViewHolder holder, int position){
         StringBuilder percent = new StringBuilder();
@@ -223,11 +230,21 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
             holder.database.collection("quizzes")
                     .document(quizList.get(position).getId())
                     .update("correct-count", FieldValue.increment(1));
+            incrementScore(holder, position);
         }else{
             holder.database.collection("quizzes")
                     .document(quizList.get(position).getId())
                     .update("wrong-count", FieldValue.increment(1));
         }
+    }
+    private void incrementScore(ViewHolder holder, int position){
+        holder.database.collection("users")
+                .document(quizList.get(position).getPoster())
+                .update("score", FieldValue.increment(1));
+        SharedPreferences.Editor editor = holder.sharedPreferences.edit();
+        editor.putLong(StaticClass.SCORE,
+                (holder.sharedPreferences.getLong(StaticClass.SCORE, 0)+1));
+        editor.apply();
     }
     private void setLikedOrDisliked(ViewHolder holder, int position){
         if(quizList.get(position).getLikesUsers().contains(
@@ -322,7 +339,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         ImageView photoIV, answer0IV, answer1IV, answer2IV, likesIV, dislikesIV;
         TextView usernameTV, descriptionTV, answer0TV, answer1TV, answer2TV,
-                likesCountTV, dislikesCountTV, percentageTV;
+                likesCountTV, dislikesCountTV, percentageTV, alreadyAnsweredTV;
         RecyclerView interestsIncludedRV;
         FirebaseFirestore database;
         SharedPreferences sharedPreferences;
@@ -336,18 +353,6 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
             findViewsByIds();
             database = FirebaseFirestore.getInstance();
             sharedPreferences = itemView.getContext().getSharedPreferences(StaticClass.SHARED_PREFERENCES, Context.MODE_PRIVATE);
-            /*email = sharedPreferences.getString(StaticClass.EMAIL, " ");
-            username = sharedPreferences.getString(StaticClass.USERNAME, "no username");
-            usernameTV.setText(username);
-            int position = getAdapterPosition();
-            setPercentage(getAdapterPosition());
-            setLikesCount(position);
-            setDislikesCount(position);
-            descriptionTV.setText(quizList.get(position).getDescription());
-            randomizeAnswer(position);
-            setListeners(position);
-            setLikedOrDisliked(position);
-            setRecyclerView(position);*/
 
         }
         void findViewsByIds(){
@@ -366,220 +371,8 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
             likesIV = itemView.findViewById(R.id.likesIV);
             dislikesIV = itemView.findViewById(R.id.dislikesIV);
             percentageTV = itemView.findViewById(R.id.percentageTV);
+            alreadyAnsweredTV = itemView.findViewById(R.id.alreadyAnsweredTV);
         }
-        /*
-        private void setPercentage(int position){
-            StringBuilder percent = new StringBuilder();
-            int total = (int) (quizList.get(position).getCorrectCount() +
-                    quizList.get(position).getWrongCount());
-            if(total != 0) {
-                int percentage = ((int)quizList.get(position).getCorrectCount())/total;
-                percentage *= 100;
-                percent.append(percentage).append("%");
-            }else{
-                percent.append("?%");
-            }
-            percentageTV.setText(percent);
-        }
-        private void setLikesCount(int position){
-            int likesCount = (int) quizList.get(position).getLikesCount();
-            StringBuilder likesText = new StringBuilder();
-            if(likesCount>1000 && likesCount<1000000){
-                likesCount = likesCount/1000;
-                likesText.append(likesCount).append("K");
-            }else if(likesCount>1000000){
-                likesCount = likesCount/1000000;
-                likesText.append(likesCount).append("M");
-            }else{
-                likesText.append(likesCount);
-            }
-            likesCountTV.setText(likesText);
-        }
-        private void setDislikesCount(int position){
-            int dislikesCount = (int) quizList.get(position).getDislikesCount();
-            StringBuilder dislikesText = new StringBuilder();
-            if(dislikesCount>1000 && dislikesCount<1000000){
-                dislikesCount = dislikesCount/1000;
-                dislikesText.append(dislikesCount).append("K");
-            }else if(dislikesCount>1000000){
-                dislikesCount = dislikesCount/1000000;
-                dislikesText.append(dislikesCount).append("M");
-            }else{
-                dislikesText.append(dislikesCount);
-            }
-            dislikesCountTV.setText(dislikesText);
-        }
-        private void setListeners(final int position){
-            answer0TV.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) { displayCorrectAnswer(position, 0);
-                }
-            });
-            answer1TV.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) { displayCorrectAnswer(position, 1); }
-            });
-            answer2TV.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) { displayCorrectAnswer(position, 2);
-                }
-            });
-            likesIV.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) { likeOnClickListener(position); }
-            });
-            dislikesIV.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) { dislikeOnClickListener(position); }});
-        }
-        private void randomizeAnswer(int position){
-            switch ((int) quizList.get(position).getCorrectIndex()){
-                case 0:
-                    answer0TV.setText(quizList.get(position).getCorrect());
-                    answer1TV.setText(quizList.get(position).getWrong0());
-                    answer2TV.setText(quizList.get(position).getWrong1());
-
-                    answer0IV.setImageDrawable(context.getDrawable(R.drawable.ic_check_green));
-                    answer1IV.setImageDrawable(context.getDrawable(R.drawable.ic_close_dark_red));
-                    answer2IV.setImageDrawable(context.getDrawable(R.drawable.ic_close_dark_red));
-                    break;
-                case 1:
-                    answer1TV.setText(quizList.get(position).getCorrect());
-                    answer2TV.setText(quizList.get(position).getWrong0());
-                    answer0TV.setText(quizList.get(position).getWrong1());
-
-                    answer1IV.setImageDrawable(context.getDrawable(R.drawable.ic_check_green));
-                    answer2IV.setImageDrawable(context.getDrawable(R.drawable.ic_close_dark_red));
-                    answer0IV.setImageDrawable(context.getDrawable(R.drawable.ic_close_dark_red));
-                    break;
-                case 2:
-                    answer2TV.setText(quizList.get(position).getCorrect());
-                    answer0TV.setText(quizList.get(position).getWrong0());
-                    answer1TV.setText(quizList.get(position).getWrong1());
-
-                    answer2IV.setImageDrawable(context.getDrawable(R.drawable.ic_check_green));
-                    answer0IV.setImageDrawable(context.getDrawable(R.drawable.ic_close_dark_red));
-                    answer1IV.setImageDrawable(context.getDrawable(R.drawable.ic_close_dark_red));
-                    break;
-            }
-        }
-        private void displayCorrectAnswer(int position, int viewClicked){
-            if (!answerDisplayed) {
-                answer0IV.setVisibility(View.VISIBLE);
-                answer1IV.setVisibility(View.VISIBLE);
-                answer2IV.setVisibility(View.VISIBLE);
-                switch ((int) quizList.get(position).getCorrectIndex()) {
-                    case 0:
-                        answer0TV.setTextColor(context.getColor(R.color.green));
-                        answer1TV.setTextColor(context.getColor(R.color.dark_red));
-                        answer2TV.setTextColor(context.getColor(R.color.dark_red));
-                        break;
-                    case 1:
-                        answer1TV.setTextColor(context.getColor(R.color.green));
-                        answer2TV.setTextColor(context.getColor(R.color.dark_red));
-                        answer0TV.setTextColor(context.getColor(R.color.dark_red));
-                        break;
-                    case 2:
-                        answer2TV.setTextColor(context.getColor(R.color.green));
-                        answer0TV.setTextColor(context.getColor(R.color.dark_red));
-                        answer1TV.setTextColor(context.getColor(R.color.dark_red));
-                        break;
-                }
-                answerDisplayed = true;
-                setAnswered(position, viewClicked);
-            }
-        }
-        private void setAnswered(int position, int viewClicked){
-            if(!quizList.get(position).getAnswersUsers().contains(email)){
-                recordAnswer(position, viewClicked);
-                database.collection("quizzes")
-                        .document(quizList.get(position).getId())
-                        .update("answers-users", FieldValue.arrayUnion(email));
-            }
-        }
-        private void recordAnswer(int position, int viewClicked){
-            if(viewClicked==quizList.get(position).getCorrectIndex()){
-                database.collection("quizzes")
-                        .document(quizList.get(position).getId())
-                        .update("correct-count", FieldValue.increment(1));
-            }else{
-                database.collection("quizzes")
-                        .document(quizList.get(position).getId())
-                        .update("wrong-count", FieldValue.increment(1));
-            }
-        }
-        private void setLikedOrDisliked(int position){
-            if(quizList.get(position).getLikesUsers().contains(email)){
-                likesIV.setImageDrawable(context.getDrawable(R.drawable.ic_like_special));
-                liked = true;
-            }else if(quizList.get(position).getDislikesUsers().contains(email)){
-                dislikesIV.setImageDrawable(context.getDrawable(R.drawable.ic_dislike_special));
-                disliked = true;
-            }
-        }
-        private void setRecyclerView(int position){
-            InterestsIncludedAdapter adapter = new InterestsIncludedAdapter(context, quizList.get(position).getInterestsIncluded());
-            interestsIncludedRV.setLayoutManager(new LinearLayoutManager(context,
-                    LinearLayoutManager.HORIZONTAL, false));
-            interestsIncludedRV.setAdapter(adapter);
-        }
-        private void likeOnClickListener(int position){
-            if(liked){
-                database.collection("quizzes")
-                        .document(quizList.get(position).getId())
-                        .update("likes-users", FieldValue.arrayRemove(email));
-                database.collection("quizzes")
-                        .document(quizList.get(position).getId())
-                        .update("likes-count", FieldValue.increment(-1));
-                likesIV.setImageDrawable(context.getDrawable(R.drawable.ic_like_grey));
-                quizList.get(position).setLikesCount(quizList.get(position).getLikesCount()-1);
-                liked = false;
-            }else{
-                if(disliked){
-                    dislikeOnClickListener(position);
-                }
-                database.collection("quizzes")
-                        .document(quizList.get(position).getId())
-                        .update("likes-users", FieldValue.arrayUnion(email));
-                database.collection("quizzes")
-                        .document(quizList.get(position).getId())
-                        .update("likes-count", FieldValue.increment(1));
-                likesIV.setImageDrawable(context.getDrawable(R.drawable.ic_like_special));
-                quizList.get(position).setLikesCount(quizList.get(position).getLikesCount()+1);
-                liked = true;
-            }
-            setLikesCount(position);
-        }
-        private void dislikeOnClickListener(int position){
-            if(disliked){
-                database.collection("quizzes")
-                        .document(quizList.get(position).getId())
-                        .update("dislikes-users", FieldValue.arrayRemove(email));
-                database.collection("quizzes")
-                        .document(quizList.get(position).getId())
-                        .update("dislikes-count", FieldValue.increment(-1));
-                dislikesIV.setImageDrawable(context.getDrawable(R.drawable.ic_dislike_grey));
-                dislikesCountTV.setText(
-                        String.valueOf(quizList.get(position).getDislikesCount()-1));
-                quizList.get(position).setDislikesCount(quizList.get(position).getDislikesCount()-1);
-                disliked = false;
-            }else{
-                if(liked){
-                    likeOnClickListener(position);
-                }
-                database.collection("quizzes")
-                        .document(quizList.get(position).getId())
-                        .update("dislikes-users", FieldValue.arrayUnion(email));
-                database.collection("quizzes")
-                        .document(quizList.get(position).getId())
-                        .update("dislikes-count", FieldValue.increment(1));
-                dislikesIV.setImageDrawable(context.getDrawable(R.drawable.ic_dislike_special));
-                quizList.get(position).setDislikesCount(quizList.get(position).getDislikesCount()+1);
-                disliked = true;
-            }
-            setDislikesCount(position);
-        }
-        */
         @Override
         public void onClick(View view) {
             if (mClickListener != null)

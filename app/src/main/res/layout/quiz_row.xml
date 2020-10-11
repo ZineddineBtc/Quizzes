@@ -16,9 +16,10 @@
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/photoIV"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             android:layout_marginEnd="5dp"
+            android:layout_marginStart="5dp"
             android:src="@drawable/ic_account_circle_grey" />
 
         <TextView
@@ -36,7 +37,16 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:text="70%"
-            android:textColor="@color/green" />
+            android:textColor="@color/green"
+            android:layout_marginEnd="10dp"/>
+        <TextView
+            android:visibility="gone"
+            android:id="@+id/alreadyAnsweredTV"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:text="@string/already_answered"
+            android:textColor="@color/grey" />
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -156,7 +166,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="horizontal"
-        android:paddingStart="10dp"
+        android:paddingStart="15dp"
         android:paddingTop="5dp">
         <ImageView
             android:id="@+id/likesIV"

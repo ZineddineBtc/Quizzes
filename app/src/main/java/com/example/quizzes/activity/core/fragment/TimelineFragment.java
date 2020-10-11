@@ -56,7 +56,6 @@ public class TimelineFragment extends Fragment {
         userInterests = new ArrayList<>(Objects.requireNonNull(context
                 .getSharedPreferences(StaticClass.SHARED_PREFERENCES, MODE_PRIVATE)
                 .getStringSet(StaticClass.INTERESTS, null)));
-        //Toast.makeText(context, String.valueOf(userInterests.size()), Toast.LENGTH_SHORT).show();
         findViewsByIds();
         setRecyclerView();
         getTimelineQuizzes();

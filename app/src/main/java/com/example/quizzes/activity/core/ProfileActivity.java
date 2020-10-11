@@ -49,7 +49,7 @@ public class ProfileActivity extends AppCompatActivity {
                     followingUsers = new ArrayList<>();
     FirebaseFirestore database;
     ProgressBar progressBar;
-    String profileID, userID;
+    String profileID, userID, backToID;
     boolean networkShown;
 
     @Override
@@ -57,6 +57,7 @@ public class ProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
         findViewsByIds();
+        backToID = getIntent().getStringExtra(StaticClass.BACK_TO_ID);
         database = FirebaseFirestore.getInstance();
         userID = getSharedPreferences(StaticClass.SHARED_PREFERENCES, MODE_PRIVATE).getString(StaticClass.EMAIL, " ");
         profileID = getIntent().getStringExtra(StaticClass.PROFILE_ID);
@@ -263,11 +264,11 @@ public class ProfileActivity extends AppCompatActivity {
     private void setNetworkRVs(){
         getFollowers();
         Toast.makeText(getApplicationContext(), String.valueOf(followersUsers.size()), Toast.LENGTH_LONG).show();
-        followersAdapter = new NetworkAdapter(getApplicationContext(), followersUsers);
+        followersAdapter = new NetworkAdapter(getApplicationContext(), followersUsers, profileID);
         followersRV.setLayoutManager(new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.VERTICAL, false));
         followersRV.setAdapter(followersAdapter);
         getFollowing();
-        followingAdapter = new NetworkAdapter(getApplicationContext(), followingUsers);
+        followingAdapter = new NetworkAdapter(getApplicationContext(), followingUsers, profileID);
         followingRV.setLayoutManager(new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.VERTICAL, false));
         followingRV.setAdapter(followingAdapter);
     }
@@ -325,8 +326,13 @@ public class ProfileActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         if (!networkShown) {
-            startActivity(new Intent(getApplicationContext(), CoreActivity.class)
-                    .putExtra(StaticClass.TO, StaticClass.TIMELINE));
+            if(backToID != null){
+                startActivity(new Intent(getApplicationContext(), ProfileActivity.class)
+                        .putExtra(StaticClass.BACK_TO_ID, backToID));
+            }else {
+                startActivity(new Intent(getApplicationContext(), CoreActivity.class)
+                        .putExtra(StaticClass.TO, StaticClass.TIMELINE));
+            }
         }else{
             shadeLL.setVisibility(View.GONE);
             networkLL.setVisibility(View.GONE);

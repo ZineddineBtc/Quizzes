@@ -67,4 +67,6 @@
     <string name="follow">Follow</string>
     <string name="unfollow">Unfollow</string>
     <string name="follow_back">Follow back</string>
+    <string name="score">Score</string>
+    <string name="already_answered">(Already Answered)</string>
 </resources>

@@ -44,6 +44,7 @@ public class MyQuizzesAdapter extends RecyclerView.Adapter<MyQuizzesAdapter.View
     public void onBindViewHolder(final ViewHolder holder, final int position) {
         holder.usernameTV.setText(holder.sharedPreferences.getString(StaticClass.USERNAME, "no username"));
         setPercentage(holder, position);
+        setAlreadyAnswered(holder, position);
         setLikesCount(holder, position);
         setDislikesCount(holder, position);
         holder.descriptionTV.setText(quizList.get(position).getDescription());
@@ -63,6 +64,13 @@ public class MyQuizzesAdapter extends RecyclerView.Adapter<MyQuizzesAdapter.View
             percent.append("?%");
         }
         holder.percentageTV.setText(percent);
+    }
+
+    private void setAlreadyAnswered(ViewHolder holder, int position){
+        if(quizList.get(position).getAnswersUsers().contains(
+                holder.sharedPreferences.getString(StaticClass.EMAIL, " "))){
+            holder.alreadyAnsweredTV.setVisibility(View.VISIBLE);
+        }
     }
     private void setLikesCount(ViewHolder holder, int position){
         int likesCount = (int) quizList.get(position).getLikesCount();
@@ -188,11 +196,21 @@ public class MyQuizzesAdapter extends RecyclerView.Adapter<MyQuizzesAdapter.View
             holder.database.collection("quizzes")
                     .document(quizList.get(position).getId())
                     .update("correct-count", FieldValue.increment(1));
+            incrementScore(holder, position);
         }else{
             holder.database.collection("quizzes")
                     .document(quizList.get(position).getId())
                     .update("wrong-count", FieldValue.increment(1));
         }
+    }
+    private void incrementScore(ViewHolder holder, int position){
+        holder.database.collection("users")
+                .document(quizList.get(position).getPoster())
+                .update("score", FieldValue.increment(1));
+        SharedPreferences.Editor editor = holder.sharedPreferences.edit();
+        editor.putLong(StaticClass.SCORE,
+                (holder.sharedPreferences.getLong(StaticClass.SCORE, 0)+1));
+        editor.apply();
     }
     private void setLikedOrDisliked(ViewHolder holder, int position){
         if(quizList.get(position).getLikesUsers().contains(
@@ -281,7 +299,7 @@ public class MyQuizzesAdapter extends RecyclerView.Adapter<MyQuizzesAdapter.View
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         ImageView photoIV, answer0IV, answer1IV, answer2IV, likesIV, dislikesIV;
         TextView usernameTV, descriptionTV, answer0TV, answer1TV, answer2TV,
-                 likesCountTV, dislikesCountTV, percentageTV;
+                 likesCountTV, dislikesCountTV, percentageTV, alreadyAnsweredTV;
         RecyclerView interestsIncludedRV;
         boolean answerDisplayed, liked, disliked;
         FirebaseFirestore database;
@@ -310,6 +328,7 @@ public class MyQuizzesAdapter extends RecyclerView.Adapter<MyQuizzesAdapter.View
             likesIV = itemView.findViewById(R.id.likesIV);
             dislikesIV = itemView.findViewById(R.id.dislikesIV);
             percentageTV = itemView.findViewById(R.id.percentageTV);
+            alreadyAnsweredTV = itemView.findViewById(R.id.alreadyAnsweredTV);
         }
 
         @Override
