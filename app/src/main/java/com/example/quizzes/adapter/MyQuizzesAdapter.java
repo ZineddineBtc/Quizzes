@@ -190,6 +190,7 @@ public class MyQuizzesAdapter extends RecyclerView.Adapter<MyQuizzesAdapter.View
                             holder.sharedPreferences.getString(StaticClass.EMAIL, " ")
                     ));
         }
+        setResultIV(holder, position, viewClicked);
     }
     private void recordAnswer(ViewHolder holder, int position, int viewClicked){
         if(viewClicked==quizList.get(position).getCorrectIndex()){
@@ -201,6 +202,12 @@ public class MyQuizzesAdapter extends RecyclerView.Adapter<MyQuizzesAdapter.View
                     .document(quizList.get(position).getId())
                     .update("wrong-count", FieldValue.increment(1));
         }
+    }
+    private void setResultIV(ViewHolder holder, int position, int viewClicked){
+        holder.resultIV.setImageDrawable(
+                viewClicked == quizList.get(position).getCorrectIndex() ?
+                context.getDrawable(R.drawable.ic_check_green) :
+                        context.getDrawable(R.drawable.ic_close_dark_red));
     }
     private void setLikedOrDisliked(ViewHolder holder, int position){
         if(quizList.get(position).getLikesUsers().contains(
@@ -287,7 +294,7 @@ public class MyQuizzesAdapter extends RecyclerView.Adapter<MyQuizzesAdapter.View
 
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        ImageView photoIV, answer0IV, answer1IV, answer2IV, likesIV, dislikesIV;
+        ImageView photoIV, answer0IV, answer1IV, answer2IV, likesIV, dislikesIV, resultIV;
         TextView usernameTV, descriptionTV, answer0TV, answer1TV, answer2TV,
                  likesCountTV, dislikesCountTV, percentageTV, alreadyAnsweredTV;
         RecyclerView interestsIncludedRV;
@@ -307,6 +314,7 @@ public class MyQuizzesAdapter extends RecyclerView.Adapter<MyQuizzesAdapter.View
             answer0IV = itemView.findViewById(R.id.answer0IV);
             answer1IV = itemView.findViewById(R.id.answer1IV);
             answer2IV = itemView.findViewById(R.id.answer2IV);
+            resultIV = itemView.findViewById(R.id.resultIV);
             usernameTV = itemView.findViewById(R.id.usernameTV);
             descriptionTV = itemView.findViewById(R.id.descriptionTV);
             answer0TV = itemView.findViewById(R.id.answer0TV);

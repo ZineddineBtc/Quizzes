@@ -3,7 +3,6 @@ package com.example.quizzes.activity.core.fragment;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,8 +27,6 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Objects;
 
 import static android.content.Context.MODE_PRIVATE;
@@ -99,6 +96,8 @@ public class TimelineFragment extends Fragment {
                                     quiz.setLikesUsers((ArrayList<String>) document.get("likes-users"));
                                     quiz.setDislikesUsers((ArrayList<String>) document.get("dislikes-users"));
                                     quiz.setAnswersUsers((ArrayList<String>) document.get("answers-users"));
+                                    quiz.setUserDefinedHardness((Long) document.get("hardness-user-defined"));
+                                    quiz.setPosterDefinedHardness((Long) document.get("hardness-poster-defined"));
                                     quizList.add(quiz);
                                     adapter.notifyDataSetChanged();
                                 }

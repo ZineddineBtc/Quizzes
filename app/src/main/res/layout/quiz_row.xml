@@ -47,6 +47,17 @@
             android:layout_gravity="center_vertical"
             android:text="@string/already_answered"
             android:textColor="@color/grey" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical|end"
+            android:layout_marginEnd="5dp">
+            <ImageView
+                android:id="@+id/resultIV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -198,5 +209,28 @@
             android:text="20"
             android:paddingEnd="5dp"
             android:gravity="center_vertical"/>
+        <LinearLayout
+            android:visibility="gone"
+            android:id="@+id/hardnessLL"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="5dp">
+            <TextView
+                android:id="@+id/hardnessTV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/hardness"/>
+            <SeekBar
+                android:id="@+id/hardnessSB"
+                style="@style/Widget.AppCompat.SeekBar.Discrete"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:max="5"
+                android:progress="0" />
+        </LinearLayout>
     </LinearLayout>
 </LinearLayout>

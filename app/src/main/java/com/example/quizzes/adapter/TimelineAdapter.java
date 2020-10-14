@@ -1,5 +1,6 @@
 package com.example.quizzes.adapter;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -7,6 +8,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -224,20 +227,21 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
                             holder.sharedPreferences.getString(StaticClass.EMAIL, " ")
                     ));
         }
+        setResultIV(holder, position, viewClicked);
     }
     private void recordAnswer(ViewHolder holder, int position, int viewClicked){
         if(viewClicked==quizList.get(position).getCorrectIndex()){
             holder.database.collection("quizzes")
                     .document(quizList.get(position).getId())
                     .update("correct-count", FieldValue.increment(1));
-            incrementScore(holder, position);
+            incrementScore(holder);
         }else{
             holder.database.collection("quizzes")
                     .document(quizList.get(position).getId())
                     .update("wrong-count", FieldValue.increment(1));
         }
     }
-    private void incrementScore(ViewHolder holder, int position){
+    private void incrementScore(ViewHolder holder){
         holder.database.collection("users")
                 .document(holder.sharedPreferences.getString(StaticClass.EMAIL, " "))
                 .update("score", FieldValue.increment(1));
@@ -245,6 +249,12 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
         editor.putLong(StaticClass.SCORE,
                 (holder.sharedPreferences.getLong(StaticClass.SCORE, 0)+1));
         editor.apply();
+    }
+    private void setResultIV(ViewHolder holder, int position, int viewClicked){
+        holder.resultIV.setImageDrawable(
+                viewClicked == quizList.get(position).getCorrectIndex() ?
+                        context.getDrawable(R.drawable.ic_check_green) :
+                        context.getDrawable(R.drawable.ic_close_dark_red));
     }
     private void setLikedOrDisliked(ViewHolder holder, int position){
         if(quizList.get(position).getLikesUsers().contains(
@@ -329,6 +339,26 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
                 .putExtra(StaticClass.PROFILE_ID,
                         quizList.get(position).getPoster()));
     }
+    private void showHardnessLL(final ViewHolder holder, final int position, boolean alreadyAnswered){
+        holder.hardnessLL.setVisibility(View.VISIBLE);
+        if(!alreadyAnswered) {
+            holder.hardnessSB.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {@Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) { }@Override public void onStartTrackingTouch(SeekBar seekBar) {}
+                @SuppressLint("SetTextI18n")
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar){
+                    long total = quizList.get(position).getCorrectCount()+
+                            quizList.get(position).getWrongCount();
+                    long oldHardness = quizList.get(position).getUserDefinedHardness();
+                    long newHardness = (seekBar.getProgress()+oldHardness)/total;
+                    holder.hardnessTV.setText(holder.hardnessTV.getText()+" "+
+                            "(Avg: "+oldHardness+")");
+                    holder.database.collection("quizzes")
+                            .document(quizList.get(position).getId())
+                            .update("hardness-user-defined", newHardness);
+                }
+            });
+        }
+    }
 
     @Override
     public int getItemCount() {
@@ -337,9 +367,11 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
 
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        ImageView photoIV, answer0IV, answer1IV, answer2IV, likesIV, dislikesIV;
+        ImageView photoIV, answer0IV, answer1IV, answer2IV, likesIV, dislikesIV, resultIV;
         TextView usernameTV, descriptionTV, answer0TV, answer1TV, answer2TV,
-                likesCountTV, dislikesCountTV, percentageTV, alreadyAnsweredTV;
+                likesCountTV, dislikesCountTV, percentageTV, alreadyAnsweredTV, hardnessTV;
+        LinearLayout hardnessLL;
+        SeekBar hardnessSB;
         RecyclerView interestsIncludedRV;
         FirebaseFirestore database;
         SharedPreferences sharedPreferences;
@@ -356,10 +388,14 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
 
         }
         void findViewsByIds(){
+            hardnessTV = itemView.findViewById(R.id.hardnessTV);
+            hardnessLL = itemView.findViewById(R.id.hardnessLL);
+            hardnessSB = itemView.findViewById(R.id.hardnessSB);
             photoIV = itemView.findViewById(R.id.photoIV);
             answer0IV = itemView.findViewById(R.id.answer0IV);
             answer1IV = itemView.findViewById(R.id.answer1IV);
             answer2IV = itemView.findViewById(R.id.answer2IV);
+            resultIV = itemView.findViewById(R.id.resultIV);
             usernameTV = itemView.findViewById(R.id.usernameTV);
             descriptionTV = itemView.findViewById(R.id.descriptionTV);
             answer0TV = itemView.findViewById(R.id.answer0TV);

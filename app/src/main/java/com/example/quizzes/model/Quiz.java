@@ -5,8 +5,25 @@ import java.util.Arrays;
 
 public class Quiz {
     private String poster, id, description, correct, wrong0, wrong1, time;
-    private long correctCount, wrongCount, likesCount, dislikesCount, correctIndex;
+    private long correctCount, wrongCount, likesCount, dislikesCount, correctIndex,
+            posterDefinedHardness, userDefinedHardness;
     private ArrayList<String> interestsIncluded, likesUsers, dislikesUsers, answersUsers;
+
+    public long getPosterDefinedHardness() {
+        return posterDefinedHardness;
+    }
+
+    public void setPosterDefinedHardness(long posterDefinedHardness) {
+        this.posterDefinedHardness = posterDefinedHardness;
+    }
+
+    public long getUserDefinedHardness() {
+        return userDefinedHardness;
+    }
+
+    public void setUserDefinedHardness(long userDefinedHardness) {
+        this.userDefinedHardness = userDefinedHardness;
+    }
 
     public String getPoster() {
         return poster;

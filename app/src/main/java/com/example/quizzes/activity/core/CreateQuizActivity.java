@@ -16,6 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import com.example.quizzes.R;
 import com.example.quizzes.StaticClass;
@@ -36,6 +37,7 @@ public class CreateQuizActivity extends AppCompatActivity {
     ImageView photoIV;
     TextView usernameTV, errorTV, postedTV;
     EditText descriptionET, correctAnswerET, wrongAnswerET0, wrongAnswerET1;
+    SeekBar hardnessSB;
     RecyclerView allInterestsRV, interestsIncludedRV;
     SharedPreferences sharedPreferences;
     FirebaseFirestore database;
@@ -66,6 +68,7 @@ public class CreateQuizActivity extends AppCompatActivity {
         correctAnswerET = findViewById(R.id.correctAnswerET);
         wrongAnswerET0 = findViewById(R.id.wrongAnswerET0);
         wrongAnswerET1 = findViewById(R.id.wrongAnswerET1);
+        hardnessSB = findViewById(R.id.hardnessSB);
         allInterestsRV = findViewById(R.id.allInterestsRV);
         interestsIncludedRV = findViewById(R.id.includedInterestsRV);
         setRecyclerViews();
@@ -120,6 +123,10 @@ public class CreateQuizActivity extends AppCompatActivity {
             displayErrorTV(R.string.interests_unincluded);
             return false;
         }
+        if(hardnessSB.getProgress() == 0){
+            displayErrorTV(R.string.unspecified_hardness);
+            return false;
+        }
         return true;
     }
     private void post(){
@@ -142,6 +149,8 @@ public class CreateQuizActivity extends AppCompatActivity {
         quizReference.put("dislikes-count", 0);
         index = new Random().nextInt(3);
         quizReference.put("correct-index", index);
+        quizReference.put("hardness-user-defined", 0);
+        quizReference.put("hardness-poster-defined", hardnessSB.getProgress());
         quizReference.put("time", StaticClass.getCurrentTime());
         quizReference.put("likes-users", new ArrayList<String>());
         quizReference.put("dislikes-users", new ArrayList<String>());

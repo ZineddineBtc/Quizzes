@@ -212,20 +212,21 @@ public class ProfileQuizzesAdapter extends RecyclerView.Adapter<ProfileQuizzesAd
                             holder.sharedPreferences.getString(StaticClass.EMAIL, " ")
                     ));
         }
+        setResultIV(holder, position, viewClicked);
     }
     private void recordAnswer(ViewHolder holder, int position, int viewClicked){
         if(viewClicked==quizList.get(position).getCorrectIndex()){
             holder.database.collection("quizzes")
                     .document(quizList.get(position).getId())
                     .update("correct-count", FieldValue.increment(1));
-            incrementScore(holder, position);
+            incrementScore(holder);
         }else{
             holder.database.collection("quizzes")
                     .document(quizList.get(position).getId())
                     .update("wrong-count", FieldValue.increment(1));
         }
     }
-    private void incrementScore(ViewHolder holder, int position){
+    private void incrementScore(ViewHolder holder){
         holder.database.collection("users")
                 .document(holder.sharedPreferences.getString(StaticClass.EMAIL, " "))
                 .update("score", FieldValue.increment(1));
@@ -233,6 +234,12 @@ public class ProfileQuizzesAdapter extends RecyclerView.Adapter<ProfileQuizzesAd
         editor.putLong(StaticClass.SCORE,
                 (holder.sharedPreferences.getLong(StaticClass.SCORE, 0)+1));
         editor.apply();
+    }
+    private void setResultIV(ViewHolder holder, int position, int viewClicked){
+        holder.resultIV.setImageDrawable(
+                viewClicked == quizList.get(position).getCorrectIndex() ?
+                        context.getDrawable(R.drawable.ic_check_green) :
+                        context.getDrawable(R.drawable.ic_close_dark_red));
     }
     private void setLikedOrDisliked(ViewHolder holder, int position){
         if(quizList.get(position).getLikesUsers().contains(
@@ -319,7 +326,7 @@ public class ProfileQuizzesAdapter extends RecyclerView.Adapter<ProfileQuizzesAd
 
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        ImageView photoIV, answer0IV, answer1IV, answer2IV, likesIV, dislikesIV;
+        ImageView photoIV, answer0IV, answer1IV, answer2IV, likesIV, dislikesIV, resultIV;
         TextView usernameTV, descriptionTV, answer0TV, answer1TV, answer2TV,
                 likesCountTV, dislikesCountTV, percentageTV, alreadyAnsweredTV;
         RecyclerView interestsIncludedRV;
@@ -342,6 +349,7 @@ public class ProfileQuizzesAdapter extends RecyclerView.Adapter<ProfileQuizzesAd
             answer0IV = itemView.findViewById(R.id.answer0IV);
             answer1IV = itemView.findViewById(R.id.answer1IV);
             answer2IV = itemView.findViewById(R.id.answer2IV);
+            resultIV = itemView.findViewById(R.id.resultIV);
             usernameTV = itemView.findViewById(R.id.usernameTV);
             descriptionTV = itemView.findViewById(R.id.descriptionTV);
             answer0TV = itemView.findViewById(R.id.answer0TV);

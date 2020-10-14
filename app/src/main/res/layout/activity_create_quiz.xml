@@ -124,6 +124,26 @@
             android:layout_marginEnd="15dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="5dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/expected_hardness"/>
+            <SeekBar
+                android:id="@+id/hardnessSB"
+                style="@style/Widget.AppCompat.SeekBar.Discrete"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:max="5"
+                android:progress="0" />
+        </LinearLayout>
     </LinearLayout>
     <TextView
         android:visibility="gone"

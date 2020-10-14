@@ -69,4 +69,7 @@
     <string name="follow_back">Follow back</string>
     <string name="score">Score</string>
     <string name="already_answered">(Already Answered)</string>
+    <string name="hardness">Hardness</string>
+    <string name="expected_hardness">Expected Hardness</string>
+    <string name="unspecified_hardness">Unspecified Hardness</string>
 </resources>

@@ -77,6 +77,8 @@ public class MyQuizzesActivity extends AppCompatActivity {
                                     quiz.setLikesUsers((ArrayList<String>) document.get("likes-users"));
                                     quiz.setDislikesUsers((ArrayList<String>) document.get("dislikes-users"));
                                     quiz.setAnswersUsers((ArrayList<String>) document.get("answers-users"));
+                                    quiz.setUserDefinedHardness((Long) document.get("hardness-user-defined"));
+                                    quiz.setPosterDefinedHardness((Long) document.get("hardness-poster-defined"));
                                     quizzes.add(quiz);
                                     adapter.notifyDataSetChanged();
                                 }
