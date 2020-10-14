@@ -106,7 +106,7 @@ public class MyQuizzesActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         startActivity(new Intent(getApplicationContext(), CoreActivity.class)
-                .putExtra(StaticClass.TO, StaticClass.SETTINGS));
+                .putExtra(StaticClass.TO, StaticClass.PROFILE_FRAGMENT));
     }
     @Override
     public boolean onSupportNavigateUp() {

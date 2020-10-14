@@ -24,6 +24,7 @@ public class StaticClass {
     public static String NETWORK_ADAPTER = "network_adapter";
     public static String BACK_TO_ID = "back_to_id";
     public static String TIMELINE = "timeline";
+    public static String PROFILE_FRAGMENT = "profile_fragment";
 
 
     public static ArrayList<String> allInterests = new ArrayList<String>(){{

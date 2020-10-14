@@ -5,15 +5,15 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:background="@drawable/special_background_rounded_border"
-    android:layout_margin="5dp">
+    android:layout_margin="2dp">
     <TextView
         android:id="@+id/interestTV"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Science"
         android:textSize="12sp"
-        android:paddingEnd="5dp"
         android:paddingStart="5dp"
+        android:paddingEnd="5dp"
         android:textColor="@color/white"/>
 
 </LinearLayout>

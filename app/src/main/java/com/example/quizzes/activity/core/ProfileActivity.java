@@ -38,7 +38,7 @@ public class ProfileActivity extends AppCompatActivity {
 
     LinearLayout shadeLL, networkLL;
     ImageView photoIV;
-    TextView usernameTV, bioTV, followersCount, followingCount;
+    TextView usernameTV, bioTV, followersCount, followingCount, scoreTV;
     Button followButton, unfollowButton;
     RecyclerView quizzesRV, followersRV, followingRV;
     ProfileQuizzesAdapter adapter;
@@ -50,7 +50,7 @@ public class ProfileActivity extends AppCompatActivity {
     FirebaseFirestore database;
     ProgressBar progressBar;
     String profileID, userID, backToID;
-    boolean networkShown;
+    boolean networkShown, networkSet;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +71,7 @@ public class ProfileActivity extends AppCompatActivity {
         bioTV = findViewById(R.id.bioTV);
         followersCount = findViewById(R.id.followersCountTV);
         followingCount = findViewById(R.id.followingCountTV);
+        scoreTV = findViewById(R.id.scoreTV);
         followButton = findViewById(R.id.followButton);
         followButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -106,6 +107,7 @@ public class ProfileActivity extends AppCompatActivity {
                                 usernameTV.setText(username);
                                 setActionBarTitle(username);
                                 bioTV.setText(String.valueOf(document.get("bio")));
+                                scoreTV.setText(String.valueOf(document.get("score")));
                                 followersCount.setText(String.valueOf(document.get("followers-count")));
                                 followingCount.setText(String.valueOf(document.get("following-count")));
                                 followers = (ArrayList<String>) document.get("followers");
@@ -256,7 +258,9 @@ public class ProfileActivity extends AppCompatActivity {
                 });
     }
     public void showNetwork(View view){
-        setNetworkRVs();
+        if(!networkSet){
+            setNetworkRVs();
+        }
         shadeLL.setVisibility(View.VISIBLE);
         networkLL.setVisibility(View.VISIBLE);
         networkShown = true;
@@ -271,6 +275,7 @@ public class ProfileActivity extends AppCompatActivity {
         followingAdapter = new NetworkAdapter(getApplicationContext(), followingUsers, profileID);
         followingRV.setLayoutManager(new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.VERTICAL, false));
         followingRV.setAdapter(followingAdapter);
+        networkSet = true;
     }
     private void getFollowers(){
         for (String s: followers){

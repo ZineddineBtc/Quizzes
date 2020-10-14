@@ -239,7 +239,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     }
     private void incrementScore(ViewHolder holder, int position){
         holder.database.collection("users")
-                .document(quizList.get(position).getPoster())
+                .document(holder.sharedPreferences.getString(StaticClass.EMAIL, " "))
                 .update("score", FieldValue.increment(1));
         SharedPreferences.Editor editor = holder.sharedPreferences.edit();
         editor.putLong(StaticClass.SCORE,

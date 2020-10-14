@@ -112,7 +112,7 @@ public class ProfileFragment extends Fragment {
         email = sharedPreferences.getString(StaticClass.EMAIL, "no email");
         emailTV.setText(email);
         long score = sharedPreferences.getLong(StaticClass.SCORE, 0);
-        scoreTV.setText((int) score);
+        scoreTV.setText(String.valueOf(score));
         setRecyclerViews();
         signOutTV.setOnClickListener(new View.OnClickListener() {
             @Override

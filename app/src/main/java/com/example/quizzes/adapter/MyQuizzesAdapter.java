@@ -196,21 +196,11 @@ public class MyQuizzesAdapter extends RecyclerView.Adapter<MyQuizzesAdapter.View
             holder.database.collection("quizzes")
                     .document(quizList.get(position).getId())
                     .update("correct-count", FieldValue.increment(1));
-            incrementScore(holder, position);
         }else{
             holder.database.collection("quizzes")
                     .document(quizList.get(position).getId())
                     .update("wrong-count", FieldValue.increment(1));
         }
-    }
-    private void incrementScore(ViewHolder holder, int position){
-        holder.database.collection("users")
-                .document(quizList.get(position).getPoster())
-                .update("score", FieldValue.increment(1));
-        SharedPreferences.Editor editor = holder.sharedPreferences.edit();
-        editor.putLong(StaticClass.SCORE,
-                (holder.sharedPreferences.getLong(StaticClass.SCORE, 0)+1));
-        editor.apply();
     }
     private void setLikedOrDisliked(ViewHolder holder, int position){
         if(quizList.get(position).getLikesUsers().contains(
