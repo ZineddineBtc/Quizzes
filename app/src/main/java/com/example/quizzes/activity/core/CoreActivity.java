@@ -1,8 +1,10 @@
 package com.example.quizzes.activity.core;
 
 import android.os.Bundle;
+import android.os.Handler;
 
 import com.example.quizzes.R;
+import com.example.quizzes.StaticClass;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,15 +19,22 @@ public class CoreActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_core);
-        BottomNavigationView navView = findViewById(R.id.nav_view);
+        final BottomNavigationView navView = findViewById(R.id.nav_view);
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.navigation_timeline, R.id.navigation_dashboard, R.id.navigation_profile)
                 .build();
+
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(navView, navController);
+        if(getIntent().getStringExtra(StaticClass.TO) != null) {
+            if (getIntent().getStringExtra(StaticClass.TO)
+                    .equals(StaticClass.PROFILE_FRAGMENT)) {
+                navView.setSelectedItemId(R.id.navigation_profile);
+            }
+        }
     }
 
     @Override

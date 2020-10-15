@@ -1,5 +1,6 @@
 package com.example.quizzes.adapter;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -7,6 +8,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -203,6 +206,7 @@ public class ProfileQuizzesAdapter extends RecyclerView.Adapter<ProfileQuizzesAd
         }
     }
     private void setAnswered(ViewHolder holder, int position, int viewClicked){
+        boolean alreadyAnswered = false;
         if(!quizList.get(position).getAnswersUsers().contains(
                 holder.sharedPreferences.getString(StaticClass.EMAIL, " "))){
             recordAnswer(holder, position, viewClicked);
@@ -211,7 +215,9 @@ public class ProfileQuizzesAdapter extends RecyclerView.Adapter<ProfileQuizzesAd
                     .update("answers-users", FieldValue.arrayUnion(
                             holder.sharedPreferences.getString(StaticClass.EMAIL, " ")
                     ));
+            alreadyAnswered = true;
         }
+        showHardnessLL(holder, position, alreadyAnswered);
         setResultIV(holder, position, viewClicked);
     }
     private void recordAnswer(ViewHolder holder, int position, int viewClicked){
@@ -318,6 +324,30 @@ public class ProfileQuizzesAdapter extends RecyclerView.Adapter<ProfileQuizzesAd
         }
         setDislikesCount(holder, position);
     }
+    private void showHardnessLL(final ViewHolder holder, final int position, final boolean alreadyAnswered){
+        holder.hardnessLL.setVisibility(View.VISIBLE);
+        holder.hardnessSB.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {@Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) { }@Override public void onStartTrackingTouch(SeekBar seekBar) {}
+            @SuppressLint("SetTextI18n")
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar){
+                long oldHardness = quizList.get(position).getUserDefinedHardness();
+                if(!holder.oldHardnessShown) {
+                    holder.hardnessTV.setText(holder.hardnessTV.getText() + " " +
+                            "(Avg: " + oldHardness + ")");
+                    holder.oldHardnessShown = true;
+                }
+                if(!alreadyAnswered) {
+                    long total = quizList.get(position).getCorrectCount()+
+                            quizList.get(position).getWrongCount();
+                    long newHardness = (seekBar.getProgress()+oldHardness)/total;
+                    holder.database.collection("quizzes")
+                            .document(quizList.get(position).getId())
+                            .update("hardness-user-defined", newHardness);
+                }
+            }
+        });
+
+    }
 
     @Override
     public int getItemCount() {
@@ -326,13 +356,15 @@ public class ProfileQuizzesAdapter extends RecyclerView.Adapter<ProfileQuizzesAd
 
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+        LinearLayout hardnessLL;
+        SeekBar hardnessSB;
         ImageView photoIV, answer0IV, answer1IV, answer2IV, likesIV, dislikesIV, resultIV;
         TextView usernameTV, descriptionTV, answer0TV, answer1TV, answer2TV,
-                likesCountTV, dislikesCountTV, percentageTV, alreadyAnsweredTV;
+                likesCountTV, dislikesCountTV, percentageTV, alreadyAnsweredTV, hardnessTV;
         RecyclerView interestsIncludedRV;
         FirebaseFirestore database;
         SharedPreferences sharedPreferences;
-        boolean answerDisplayed, liked, disliked;
+        boolean answerDisplayed, oldHardnessShown, liked, disliked;
         String username, email;
         Context context;
 
@@ -345,6 +377,9 @@ public class ProfileQuizzesAdapter extends RecyclerView.Adapter<ProfileQuizzesAd
 
         }
         void findViewsByIds(){
+            hardnessTV = itemView.findViewById(R.id.hardnessTV);
+            hardnessLL = itemView.findViewById(R.id.hardnessLL);
+            hardnessSB = itemView.findViewById(R.id.hardnessSB);
             photoIV = itemView.findViewById(R.id.photoIV);
             answer0IV = itemView.findViewById(R.id.answer0IV);
             answer1IV = itemView.findViewById(R.id.answer1IV);
