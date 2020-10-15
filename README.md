@@ -1,5 +1,5 @@
 # Quizzes
-An Android app that always users to post and solve quizzes of mutltiple choices and specific topics.
+An Android app that allows users to post and solve quizzes of mutltiple choices and specific topics.
 
 ## Features
 Users can create a quiz in any topic, phrased in any way and define 2 trap answers and one correct answer for every quiz.<br/>
