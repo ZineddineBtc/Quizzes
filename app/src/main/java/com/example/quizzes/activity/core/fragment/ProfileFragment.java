@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.quizzes.R;
 import com.example.quizzes.StaticClass;
+import com.example.quizzes.activity.core.BookmarkActivity;
 import com.example.quizzes.activity.core.MyQuizzesActivity;
 import com.example.quizzes.activity.entry.LoginActivity;
 import com.example.quizzes.adapter.CheckInterestsAdapter;
@@ -45,7 +46,7 @@ import java.util.Map;
 public class ProfileFragment extends Fragment {
 
     private View fragmentView;
-    private LinearLayout myQuizzesLL;
+    private LinearLayout myQuizzesLL, bookmarkLL;
     private ImageView photoIV, editUsernameIV, editBioIV, editInterestsIV;
     private TextView usernameTV, bioTV, emailTV, scoreTV, signOutTV, errorTV;
     private EditText usernameET, bioET;
@@ -74,6 +75,7 @@ public class ProfileFragment extends Fragment {
     private void findViewsByIds(){
         photoIV = fragmentView.findViewById(R.id.photoIV);
         myQuizzesLL = fragmentView.findViewById(R.id.myQuizzesLL);
+        bookmarkLL = fragmentView.findViewById(R.id.bookmarkLL);
         signOutTV = fragmentView.findViewById(R.id.signOutTV);
         errorTV = fragmentView.findViewById(R.id.errorTV);
         usernameTV = fragmentView.findViewById(R.id.usernameTV);
@@ -142,6 +144,12 @@ public class ProfileFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(fragmentView.getContext(), MyQuizzesActivity.class));
+            }
+        });
+        bookmarkLL.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(fragmentView.getContext(), BookmarkActivity.class));
             }
         });
     }

@@ -3,6 +3,7 @@ package com.example.quizzes.activity.core.fragment;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,6 +23,7 @@ import com.example.quizzes.model.Quiz;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -41,11 +43,13 @@ public class TimelineFragment extends Fragment {
     private ArrayList<String> userInterests;
     private ProgressDialog progressDialog;
     private Context context;
+    private SharedPreferences sharedPreferences;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         fragmentView = inflater.inflate(R.layout.fragment_timeline, container, false);
         context = fragmentView.getContext();
+        sharedPreferences = context.getSharedPreferences(StaticClass.SHARED_PREFERENCES, MODE_PRIVATE);
         progressDialog = new ProgressDialog(context);
         progressDialog.setMessage("Loading...");
         progressDialog.show();
@@ -54,7 +58,7 @@ public class TimelineFragment extends Fragment {
                 .getSharedPreferences(StaticClass.SHARED_PREFERENCES, MODE_PRIVATE)
                 .getStringSet(StaticClass.INTERESTS, null)));
         findViewsByIds();
-        setRecyclerView();
+        getUserDocument();
         getTimelineQuizzes();
         return fragmentView;
     }
@@ -64,8 +68,24 @@ public class TimelineFragment extends Fragment {
         createFAB.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) { startActivity(new Intent(fragmentView.getContext(), CreateQuizActivity.class)); }});
     }
-    private void setRecyclerView(){
-        adapter = new TimelineAdapter(fragmentView.getContext(), quizList);
+    private void getUserDocument(){
+        database.collection("users")
+                .document(sharedPreferences.getString(StaticClass.EMAIL, " "))
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if(task.isSuccessful()){
+                            DocumentSnapshot document = task.getResult();
+                            if(document.exists()){
+                                setRecyclerView(document);
+                            }
+                        }
+                    }
+                });
+    }
+    private void setRecyclerView(DocumentSnapshot userDocument){
+        adapter = new TimelineAdapter(fragmentView.getContext(), quizList, userDocument);
         timelineRV.setLayoutManager(new LinearLayoutManager(fragmentView.getContext(), LinearLayoutManager.VERTICAL, false));
         timelineRV.setAdapter(adapter);
     }

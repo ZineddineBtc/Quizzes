@@ -16,7 +16,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activity.core.ProfileActivity"></activity>
+        <activity android:name=".activity.core.BookmarkActivity"></activity>
+        <activity android:name=".activity.core.ProfileActivity" />
         <activity android:name=".activity.core.CreateQuizActivity" />
         <activity android:name=".activity.core.MyQuizzesActivity" />
         <activity android:name=".activity.entry.RegisterActivity" />

@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Html;
 import android.view.View;
@@ -19,7 +20,7 @@ import android.widget.Toast;
 import com.example.quizzes.R;
 import com.example.quizzes.StaticClass;
 import com.example.quizzes.adapter.NetworkAdapter;
-import com.example.quizzes.adapter.ProfileQuizzesAdapter;
+import com.example.quizzes.adapter.TimelineAdapter;
 import com.example.quizzes.model.Quiz;
 import com.example.quizzes.model.User;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -31,7 +32,6 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 public class ProfileActivity extends AppCompatActivity {
@@ -41,13 +41,14 @@ public class ProfileActivity extends AppCompatActivity {
     TextView usernameTV, bioTV, followersCount, followingCount, scoreTV;
     Button followButton, unfollowButton;
     RecyclerView quizzesRV, followersRV, followingRV;
-    ProfileQuizzesAdapter adapter;
+    TimelineAdapter adapter;
     NetworkAdapter followersAdapter, followingAdapter;
     ArrayList<Quiz> quizList = new ArrayList<>();
     ArrayList<String> followers, following;
     ArrayList<User> followersUsers = new ArrayList<>(),
                     followingUsers = new ArrayList<>();
     FirebaseFirestore database;
+    SharedPreferences sharedPreferences;
     ProgressBar progressBar;
     String profileID, userID, backToID;
     boolean networkShown, networkSet;
@@ -59,11 +60,11 @@ public class ProfileActivity extends AppCompatActivity {
         findViewsByIds();
         backToID = getIntent().getStringExtra(StaticClass.BACK_TO_ID);
         database = FirebaseFirestore.getInstance();
+        sharedPreferences = getSharedPreferences(StaticClass.SHARED_PREFERENCES, MODE_PRIVATE);
         userID = getSharedPreferences(StaticClass.SHARED_PREFERENCES, MODE_PRIVATE).getString(StaticClass.EMAIL, " ");
         profileID = getIntent().getStringExtra(StaticClass.PROFILE_ID);
         setProfileUI(profileID);
-        setRecyclerView();
-        getQuizzes();
+        getUserDocument();
     }
     private void findViewsByIds(){
         photoIV = findViewById(R.id.photoIV);
@@ -134,10 +135,27 @@ public class ProfileActivity extends AppCompatActivity {
             }
         }
     }
-    private void setRecyclerView(){
-        adapter = new ProfileQuizzesAdapter(getApplicationContext(), quizList);
+    private void getUserDocument(){
+        database.collection("users")
+                .document(sharedPreferences.getString(StaticClass.EMAIL, " "))
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if(task.isSuccessful()){
+                            DocumentSnapshot document = task.getResult();
+                            if(document.exists()){
+                                setRecyclerView(document);
+                            }
+                        }
+                    }
+                });
+    }
+    private void setRecyclerView(DocumentSnapshot userDocument){
+        adapter = new TimelineAdapter(getApplicationContext(), quizList, userDocument);
         quizzesRV.setLayoutManager(new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.VERTICAL, false));
         quizzesRV.setAdapter(adapter);
+        getQuizzes();
     }
     private void getQuizzes(){
         database.collection("quizzes")

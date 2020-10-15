@@ -23,10 +23,12 @@ import com.example.quizzes.activity.core.ProfileActivity;
 import com.example.quizzes.model.Quiz;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHolder> {
@@ -35,11 +37,13 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
     private LayoutInflater mInflater;
     private ItemClickListener mClickListener;
     private Context context;
+    private DocumentSnapshot userDocument;
 
-    public TimelineAdapter(Context context, List<Quiz> quizList) {
+    public TimelineAdapter(Context context, List<Quiz> quizList, DocumentSnapshot userDocument) {
         this.mInflater = LayoutInflater.from(context);
         this.quizList = quizList;
         this.context = context;
+        this.userDocument = userDocument;
     }
 
     @Override
@@ -53,6 +57,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
         setPoster(holder, position);
         setPercentage(holder, position);
         setAlreadyAnswered(holder, position);
+        setBookmarked(holder, position);
         setLikesCount(holder, position);
         setDislikesCount(holder, position);
         holder.descriptionTV.setText(quizList.get(position).getDescription());
@@ -96,6 +101,15 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
             percent.append("?%");
         }
         holder.percentageTV.setText(percent);
+    }
+    private void setBookmarked(ViewHolder holder, int position){
+        if(holder.userBookmark != null){
+            if(holder.userBookmark.contains(quizList.get(position).getId())){
+                holder.bookmarked = true;
+                holder.bookmarkIV.setImageDrawable(
+                        context.getDrawable(R.drawable.ic_bookmark_special));
+            }
+        }
     }
     private void setLikesCount(ViewHolder holder, int position){
         int likesCount = (int) quizList.get(position).getLikesCount();
@@ -159,6 +173,12 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
         holder.dislikesIV.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) { dislikeOnClickListener(holder, position); }});
+        holder.bookmarkIV.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toggleBookmark(holder, position);
+            }
+        });
     }
     private void randomizeAnswer(ViewHolder holder, int position){
         switch ((int) quizList.get(position).getCorrectIndex()){
@@ -366,15 +386,26 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
         });
 
     }
+    private void toggleBookmark(ViewHolder holder, int position){
+        String id = quizList.get(position).getId();
+        holder.database.collection("users")
+                .document(userDocument.getId())
+                .update("bookmark", holder.bookmarked ?
+                        FieldValue.arrayRemove(id) : FieldValue.arrayUnion(id));
+        holder.bookmarkIV.setImageDrawable(holder.bookmarked ?
+                context.getDrawable(R.drawable.ic_bookmark_grey) :
+                context.getDrawable(R.drawable.ic_bookmark_special));
+        holder.bookmarked = ! holder.bookmarked;
+    }
 
     @Override
     public int getItemCount() {
         return quizList.size();
     }
 
-
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        ImageView photoIV, answer0IV, answer1IV, answer2IV, likesIV, dislikesIV, resultIV;
+        ImageView photoIV, answer0IV, answer1IV, answer2IV, likesIV, dislikesIV, resultIV,
+                  bookmarkIV;
         TextView usernameTV, descriptionTV, answer0TV, answer1TV, answer2TV,
                 likesCountTV, dislikesCountTV, percentageTV, alreadyAnsweredTV, hardnessTV;
         LinearLayout hardnessLL;
@@ -382,9 +413,9 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
         RecyclerView interestsIncludedRV;
         FirebaseFirestore database;
         SharedPreferences sharedPreferences;
-        boolean answerDisplayed, oldHardnessShown, liked, disliked;
-        String username, email;
+        boolean answerDisplayed, oldHardnessShown, liked, disliked, bookmarked;
         Context context;
+        ArrayList<String> userBookmark;
 
         public ViewHolder(final View itemView) {
             super(itemView);
@@ -392,9 +423,10 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
             findViewsByIds();
             database = FirebaseFirestore.getInstance();
             sharedPreferences = itemView.getContext().getSharedPreferences(StaticClass.SHARED_PREFERENCES, Context.MODE_PRIVATE);
-
+            userBookmark = (ArrayList<String>) userDocument.get("bookmark");
         }
         void findViewsByIds(){
+            bookmarkIV = itemView.findViewById(R.id.bookmarkIV);
             hardnessTV = itemView.findViewById(R.id.hardnessTV);
             hardnessLL = itemView.findViewById(R.id.hardnessLL);
             hardnessSB = itemView.findViewById(R.id.hardnessSB);

@@ -190,6 +190,11 @@ public class SetProfileActivity extends AppCompatActivity {
         userReference.put("score", 0);
         userReference.put("interests", userInterests);
         userReference.put("quizzes", new ArrayList<>());
+        userReference.put("bookmark", new ArrayList<>());
+        userReference.put("followers", new ArrayList<>());
+        userReference.put("following", new ArrayList<>());
+        userReference.put("followers-count", 0);
+        userReference.put("following-count", 0);
         database.collection("users")
                 .document(email)
                 .set(userReference)
