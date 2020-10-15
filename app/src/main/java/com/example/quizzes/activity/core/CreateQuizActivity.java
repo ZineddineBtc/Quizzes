@@ -140,6 +140,7 @@ public class CreateQuizActivity extends AppCompatActivity {
     private void putQuizReference(){
         quizReference.put("poster", sharedPreferences.getString(StaticClass.EMAIL, " "));
         quizReference.put("description", description);
+        quizReference.put("interests", interestsIncluded);
         quizReference.put("correct", correctAnswer);
         quizReference.put("wrong0", wrongAnswer0);
         quizReference.put("wrong1", wrongAnswer1);

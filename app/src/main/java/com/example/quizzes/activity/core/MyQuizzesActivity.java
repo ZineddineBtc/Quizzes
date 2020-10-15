@@ -102,7 +102,7 @@ public class MyQuizzesActivity extends AppCompatActivity {
         Objects.requireNonNull(getSupportActionBar()).setHomeAsUpIndicator(R.drawable.ic_arrow_back_white);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
         Objects.requireNonNull(getSupportActionBar()).setTitle(
-                Html.fromHtml("<font color=\"#1976D2\"> "+title+" </font>")
+                Html.fromHtml("<font color=\"#ffffff\"> "+title+" </font>")
         );
     }
     @Override

@@ -218,6 +218,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
         }
     }
     private void setAnswered(ViewHolder holder, int position, int viewClicked){
+        boolean alreadyAnswered = false;
         if(!quizList.get(position).getAnswersUsers().contains(
                 holder.sharedPreferences.getString(StaticClass.EMAIL, " "))){
             recordAnswer(holder, position, viewClicked);
@@ -226,8 +227,10 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
                     .update("answers-users", FieldValue.arrayUnion(
                             holder.sharedPreferences.getString(StaticClass.EMAIL, " ")
                     ));
+            alreadyAnswered = true;
         }
         setResultIV(holder, position, viewClicked);
+        showHardnessLL(holder, position, alreadyAnswered);
     }
     private void recordAnswer(ViewHolder holder, int position, int viewClicked){
         if(viewClicked==quizList.get(position).getCorrectIndex()){
@@ -339,25 +342,29 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
                 .putExtra(StaticClass.PROFILE_ID,
                         quizList.get(position).getPoster()));
     }
-    private void showHardnessLL(final ViewHolder holder, final int position, boolean alreadyAnswered){
+    private void showHardnessLL(final ViewHolder holder, final int position, final boolean alreadyAnswered){
         holder.hardnessLL.setVisibility(View.VISIBLE);
-        if(!alreadyAnswered) {
-            holder.hardnessSB.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {@Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) { }@Override public void onStartTrackingTouch(SeekBar seekBar) {}
-                @SuppressLint("SetTextI18n")
-                @Override
-                public void onStopTrackingTouch(SeekBar seekBar){
+        holder.hardnessSB.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {@Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) { }@Override public void onStartTrackingTouch(SeekBar seekBar) {}
+            @SuppressLint("SetTextI18n")
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar){
+                long oldHardness = quizList.get(position).getUserDefinedHardness();
+                if(!holder.oldHardnessShown) {
+                    holder.hardnessTV.setText(holder.hardnessTV.getText() + " " +
+                            "(Avg: " + oldHardness + ")");
+                    holder.oldHardnessShown = true;
+                }
+                if(!alreadyAnswered) {
                     long total = quizList.get(position).getCorrectCount()+
                             quizList.get(position).getWrongCount();
-                    long oldHardness = quizList.get(position).getUserDefinedHardness();
                     long newHardness = (seekBar.getProgress()+oldHardness)/total;
-                    holder.hardnessTV.setText(holder.hardnessTV.getText()+" "+
-                            "(Avg: "+oldHardness+")");
                     holder.database.collection("quizzes")
                             .document(quizList.get(position).getId())
                             .update("hardness-user-defined", newHardness);
                 }
-            });
-        }
+            }
+        });
+
     }
 
     @Override
@@ -375,7 +382,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
         RecyclerView interestsIncludedRV;
         FirebaseFirestore database;
         SharedPreferences sharedPreferences;
-        boolean answerDisplayed, liked, disliked;
+        boolean answerDisplayed, oldHardnessShown, liked, disliked;
         String username, email;
         Context context;
 
