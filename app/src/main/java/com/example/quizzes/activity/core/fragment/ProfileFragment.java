@@ -27,7 +27,9 @@ import com.example.quizzes.activity.core.BookmarkActivity;
 import com.example.quizzes.activity.core.MyQuizzesActivity;
 import com.example.quizzes.activity.entry.LoginActivity;
 import com.example.quizzes.adapter.CheckInterestsAdapter;
+import com.example.quizzes.adapter.NetworkAdapter;
 import com.example.quizzes.adapter.StringRVAdapter;
+import com.example.quizzes.model.User;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -46,25 +48,32 @@ import java.util.Map;
 public class ProfileFragment extends Fragment {
 
     private View fragmentView;
-    private LinearLayout myQuizzesLL, bookmarkLL;
+    private LinearLayout myQuizzesLL, bookmarkLL, networkCountLL;
+    public  static LinearLayout shadeLL, networkLL;
     private ImageView photoIV, editUsernameIV, editBioIV, editInterestsIV;
-    private TextView usernameTV, bioTV, emailTV, scoreTV, signOutTV, errorTV;
+    private TextView usernameTV, bioTV, emailTV, scoreTV, signOutTV, errorTV,
+                     followersCountTV, followingCountTV, emptyFollowersTV, emptyFollowingTV;
     private EditText usernameET, bioET;
-    private RecyclerView userInterestsRV, allInterestsRV;
+    private RecyclerView userInterestsRV, allInterestsRV, followingRV, followersRV;
+    private NetworkAdapter followersAdapter, followingAdapter;
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
     private FirebaseFirestore database;
     private String username, bio, email;
-    private boolean editing;
-    private boolean usernameEdited, bioEdited;
-    public static boolean interestsEdited;
-    public static ArrayList<String> userInterests;
+    private boolean editing, usernameEdited, bioEdited, networkSet;
+    public  static boolean interestsEdited, networkShown;
+    private ArrayList<String> following, followers;
+    private ArrayList<User> followingUsers = new ArrayList<>(),
+                            followersUsers = new ArrayList<>();
+    public  static ArrayList<String> userInterests;
     private HashSet<String> interestsSet;
+    private Context context;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         fragmentView = inflater.inflate(R.layout.fragment_profile, container, false);
-        sharedPreferences = fragmentView.getContext().getSharedPreferences(StaticClass.SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        context = fragmentView.getContext();
+        sharedPreferences = context.getSharedPreferences(StaticClass.SHARED_PREFERENCES, Context.MODE_PRIVATE);
         editor = sharedPreferences.edit();
         database = FirebaseFirestore.getInstance();
         setHasOptionsMenu(true);
@@ -73,6 +82,15 @@ public class ProfileFragment extends Fragment {
         return fragmentView;
     }
     private void findViewsByIds(){
+        emptyFollowingTV = fragmentView.findViewById(R.id.emptyFollowingTV);
+        emptyFollowersTV = fragmentView.findViewById(R.id.emptyFollowersTV);
+        shadeLL = fragmentView.findViewById(R.id.shadeLL);
+        networkLL = fragmentView.findViewById(R.id.networkLL);
+        followersRV = fragmentView.findViewById(R.id.followersRV);
+        followingRV = fragmentView.findViewById(R.id.followingRV);
+        networkCountLL = fragmentView.findViewById(R.id.networkCountLL);
+        followersCountTV = fragmentView.findViewById(R.id.followersCountTV);
+        followingCountTV = fragmentView.findViewById(R.id.followingCountTV);
         photoIV = fragmentView.findViewById(R.id.photoIV);
         myQuizzesLL = fragmentView.findViewById(R.id.myQuizzesLL);
         bookmarkLL = fragmentView.findViewById(R.id.bookmarkLL);
@@ -152,6 +170,27 @@ public class ProfileFragment extends Fragment {
                 startActivity(new Intent(fragmentView.getContext(), BookmarkActivity.class));
             }
         });
+        getNetwork();
+        networkCountLL.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showNetwork();
+            }
+        });
+    }
+    private void getNetwork(){
+        database.collection("users")
+                .document(email)
+                .get()
+                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot document) {
+                        if(document.exists()){
+                            followersCountTV.setText(String.valueOf(document.get("followers-count")));
+                            followingCountTV.setText(String.valueOf(document.get("following-count")));
+                        }
+                    }
+                });
     }
     private void setRecyclerViews(){
         userInterests = new ArrayList<>(sharedPreferences.getStringSet(StaticClass.INTERESTS, new HashSet<String>()));
@@ -364,6 +403,99 @@ public class ProfileFragment extends Fragment {
                                 Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+    private void showNetwork(){
+        if(!networkSet){
+            getNetworkLists();
+        }
+        shadeLL.setVisibility(View.VISIBLE);
+        networkLL.setVisibility(View.VISIBLE);
+        networkShown = true;
+    }
+    private void getNetworkLists(){
+        database.collection("users")
+                .document(email)
+                .get()
+                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot document) {
+                        if(document.exists()){
+                            followers = (ArrayList<String>) document.get("followers");
+                            following = (ArrayList<String>) document.get("following");
+                            setNetworkRVs();
+                        }
+                    }
+                });
+    }
+    private void setNetworkRVs(){
+        getFollowers();
+        followersAdapter = new NetworkAdapter(context, followersUsers, email);
+        followersRV.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
+        followersRV.setAdapter(followersAdapter);
+        getFollowing();
+        followingAdapter = new NetworkAdapter(context, followingUsers, email);
+        followingRV.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
+        followingRV.setAdapter(followingAdapter);
+        networkSet = true;
+        checkEmptyLists();
+    }
+    private void getFollowers(){
+        for (String s: followers){
+            database.collection("users")
+                    .document(s)
+                    .get()
+                    .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                            if(task.isSuccessful()){
+                                DocumentSnapshot document = task.getResult();
+                                if(document.exists()){
+                                    User user = new User();
+                                    user.setId(document.getId());
+                                    user.setUsername(String.valueOf(document.get("username")));
+                                    followersUsers.add(user);
+                                    followersAdapter.notifyDataSetChanged();
+                                }
+                            }
+                        }
+                    });
+        }
+    }
+    private void getFollowing(){
+        for (String s: following){
+            database.collection("users")
+                    .document(s)
+                    .get()
+                    .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                            if(task.isSuccessful()){
+                                DocumentSnapshot document = task.getResult();
+                                if(document.exists()){
+                                    User user = new User();
+                                    user.setId(document.getId());
+                                    user.setUsername(String.valueOf(document.get("username")));
+                                    followingUsers.add(user);
+                                    followingAdapter.notifyDataSetChanged();
+                                }
+                            }
+                        }
+                    });
+        }
+    }
+    private void checkEmptyLists(){
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if(followers.isEmpty()){
+                    emptyFollowersTV.setVisibility(View.VISIBLE);
+                }
+                if(following.isEmpty()){
+                    emptyFollowingTV.setVisibility(View.VISIBLE);
+                }
+            }
+        }, 1000);
     }
     private void displayErrorTV(int resourceID) {
         errorTV.setText(resourceID);

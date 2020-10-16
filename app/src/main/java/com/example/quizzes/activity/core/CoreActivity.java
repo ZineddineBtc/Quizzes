@@ -1,9 +1,11 @@
 package com.example.quizzes.activity.core;
 
 import android.os.Bundle;
+import android.view.View;
 
 import com.example.quizzes.R;
 import com.example.quizzes.StaticClass;
+import com.example.quizzes.activity.core.fragment.ProfileFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,11 +16,13 @@ import androidx.navigation.ui.NavigationUI;
 
 public class CoreActivity extends AppCompatActivity {
 
+    BottomNavigationView navView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_core);
-        final BottomNavigationView navView = findViewById(R.id.nav_view);
+        navView = findViewById(R.id.nav_view);
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
@@ -38,6 +42,15 @@ public class CoreActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        moveTaskToBack(true);
+        if(navView.getSelectedItemId()==R.id.navigation_profile){
+            if(ProfileFragment.networkShown){
+                ProfileFragment.networkLL.setVisibility(View.GONE);
+                ProfileFragment.shadeLL.setVisibility(View.GONE);
+                ProfileFragment.networkShown = false;
+            }
+        }else{
+            moveTaskToBack(true);
+        }
+
     }
 }

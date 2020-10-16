@@ -74,4 +74,6 @@
     <string name="unspecified_hardness">Unspecified Hardness</string>
     <string name="no_bookmarks_yet">No bookmarks yet</string>
     <string name="title_following">Following</string>
+    <string name="no_followers">No followers</string>
+    <string name="no_following">No following</string>
 </resources>

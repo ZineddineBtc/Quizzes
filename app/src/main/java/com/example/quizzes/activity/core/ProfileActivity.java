@@ -286,7 +286,6 @@ public class ProfileActivity extends AppCompatActivity {
     }
     private void setNetworkRVs(){
         getFollowers();
-        Toast.makeText(getApplicationContext(), String.valueOf(followersUsers.size()), Toast.LENGTH_LONG).show();
         followersAdapter = new NetworkAdapter(getApplicationContext(), followersUsers, profileID);
         followersRV.setLayoutManager(new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.VERTICAL, false));
         followersRV.setAdapter(followersAdapter);
