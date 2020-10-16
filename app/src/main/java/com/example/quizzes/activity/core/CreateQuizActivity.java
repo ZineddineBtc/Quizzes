@@ -160,7 +160,7 @@ public class CreateQuizActivity extends AppCompatActivity {
     private void arrayUnionQuizToUserDocument(DocumentReference doc){
         database.collection("users")
                 .document(sharedPreferences.getString(StaticClass.EMAIL, " "))
-                .update("bookmark", FieldValue.arrayUnion(doc))
+                .update("quizzes", FieldValue.arrayUnion(doc.getId()))
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
@@ -170,7 +170,7 @@ public class CreateQuizActivity extends AppCompatActivity {
                 });
     }
     private void writeQuiz(){
-        final DocumentReference documentReference = database.collection("bookmark").document();
+        final DocumentReference documentReference = database.collection("quizzes").document();
         documentReference.set(quizReference)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override

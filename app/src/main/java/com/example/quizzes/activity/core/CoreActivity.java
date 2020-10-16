@@ -1,7 +1,6 @@
 package com.example.quizzes.activity.core;
 
 import android.os.Bundle;
-import android.os.Handler;
 
 import com.example.quizzes.R;
 import com.example.quizzes.StaticClass;
@@ -23,7 +22,7 @@ public class CoreActivity extends AppCompatActivity {
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.navigation_timeline, R.id.navigation_dashboard, R.id.navigation_profile)
+                R.id.navigation_timeline, R.id.navigation_following, R.id.navigation_profile)
                 .build();
 
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);

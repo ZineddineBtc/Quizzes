@@ -59,7 +59,6 @@ public class TimelineFragment extends Fragment {
                 .getStringSet(StaticClass.INTERESTS, null)));
         findViewsByIds();
         getUserDocument();
-        getTimelineQuizzes();
         return fragmentView;
     }
     private void findViewsByIds(){
@@ -88,6 +87,7 @@ public class TimelineFragment extends Fragment {
         adapter = new TimelineAdapter(fragmentView.getContext(), quizList, userDocument);
         timelineRV.setLayoutManager(new LinearLayoutManager(fragmentView.getContext(), LinearLayoutManager.VERTICAL, false));
         timelineRV.setAdapter(adapter);
+        getTimelineQuizzes();
     }
     private void getTimelineQuizzes(){
         database.collection("quizzes")
@@ -122,7 +122,6 @@ public class TimelineFragment extends Fragment {
                                     adapter.notifyDataSetChanged();
                                 }
                             }
-                            Toast.makeText(context, String.valueOf(quizList.size()), Toast.LENGTH_SHORT).show();
                             progressDialog.dismiss();
                         } else {
                             Toast.makeText(fragmentView.getContext(),
