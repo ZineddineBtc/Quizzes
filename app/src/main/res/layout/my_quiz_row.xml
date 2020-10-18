@@ -71,14 +71,13 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp" />
 
-    <EditText
+    <TextView
         android:id="@+id/descriptionTV"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/white"
         android:gravity="start"
         android:hint="@string/describe_the_quiz_for_you_network"
-        android:inputType="textMultiLine"
         android:paddingStart="10dp"
         android:paddingTop="5dp"
         android:paddingEnd="10dp"

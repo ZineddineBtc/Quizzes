@@ -10,6 +10,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Html;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.quizzes.R;
@@ -29,12 +32,12 @@ import java.util.Set;
 
 public class MyQuizzesActivity extends AppCompatActivity {
 
-    FirebaseFirestore database;
-    SharedPreferences sharedPreferences;
-    ArrayList<Quiz> quizzes = new ArrayList<>();
-    RecyclerView myQuizzesRV;
-    MyQuizzesAdapter adapter;
-    ProgressDialog progressDialog;
+    private FirebaseFirestore database;
+    private ArrayList<Quiz> quizzes = new ArrayList<>();
+    private MyQuizzesAdapter adapter;
+    private ProgressDialog progressDialog;
+    public static LinearLayout shadeLL, moreLL;
+    public static TextView deleteTV, cancelTV, editTV;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,9 +48,16 @@ public class MyQuizzesActivity extends AppCompatActivity {
         progressDialog.setMessage("Loading...");
         progressDialog.show();
         database = FirebaseFirestore.getInstance();
-        sharedPreferences = getSharedPreferences(StaticClass.SHARED_PREFERENCES, MODE_PRIVATE);
+        findViewsByIds();
         setRecyclerView();
         getMyQuizzes();
+    }
+    private void findViewsByIds(){
+        shadeLL = findViewById(R.id.shadeLL);
+        moreLL = findViewById(R.id.moreLL);
+        deleteTV = findViewById(R.id.deleteTV);
+        cancelTV = findViewById(R.id.cancelTV);
+        editTV = findViewById(R.id.editTV);
     }
     private void getMyQuizzes(){
         database.collection("quizzes")
@@ -94,9 +104,13 @@ public class MyQuizzesActivity extends AppCompatActivity {
     }
     private void setRecyclerView(){
         adapter = new MyQuizzesAdapter(getApplicationContext(), quizzes);
-        myQuizzesRV = findViewById(R.id.myQuizzesRV);
+        RecyclerView myQuizzesRV = findViewById(R.id.myQuizzesRV);
         myQuizzesRV.setLayoutManager(new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.VERTICAL, false));
         myQuizzesRV.setAdapter(adapter);
+    }
+    public static void setMoreVisibility(boolean visibility){
+        shadeLL.setVisibility(visibility ? View.VISIBLE : View.GONE);
+        moreLL.setVisibility(visibility ? View.VISIBLE : View.GONE);
     }
     public void setActionBarTitle(String title){
         Objects.requireNonNull(getSupportActionBar()).setHomeAsUpIndicator(R.drawable.ic_arrow_back_white);
@@ -107,8 +121,12 @@ public class MyQuizzesActivity extends AppCompatActivity {
     }
     @Override
     public void onBackPressed() {
-        startActivity(new Intent(getApplicationContext(), CoreActivity.class)
-                .putExtra(StaticClass.TO, StaticClass.PROFILE_FRAGMENT));
+        if(shadeLL.getVisibility()== View.VISIBLE){
+            setMoreVisibility(false);
+        }else{
+            startActivity(new Intent(getApplicationContext(), CoreActivity.class)
+                    .putExtra(StaticClass.TO, StaticClass.PROFILE_FRAGMENT));
+        }
     }
     @Override
     public boolean onSupportNavigateUp() {

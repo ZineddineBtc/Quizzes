@@ -76,4 +76,5 @@
     <string name="title_following">Following</string>
     <string name="no_followers">No followers</string>
     <string name="no_following">No following</string>
+    <string name="more">More</string>
 </resources>

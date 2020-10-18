@@ -2,10 +2,8 @@ package com.example.quizzes.adapter;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,14 +12,15 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.quizzes.R;
 import com.example.quizzes.StaticClass;
 import com.example.quizzes.activity.core.EditQuizActivity;
+import com.example.quizzes.activity.core.MyQuizzesActivity;
 import com.example.quizzes.model.Quiz;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -140,9 +139,38 @@ public class MyQuizzesAdapter extends RecyclerView.Adapter<MyQuizzesAdapter.View
         holder.moreIV.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                more(holder, position);
+            }
+        });
+    }
+    private void more(final ViewHolder holder, final int position){
+        MyQuizzesActivity.setMoreVisibility(true);
+        MyQuizzesActivity.cancelTV.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MyQuizzesActivity.setMoreVisibility(false);
+            }
+        });
+        MyQuizzesActivity.deleteTV.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                delete(holder, position);
+            }
+        });
+        MyQuizzesActivity.editTV.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
                 edit(position);
             }
         });
+    }
+    private void delete(ViewHolder holder, int position){
+        holder.database.collection("quizzes")
+                .document(quizList.get(position).getId())
+                .delete();
+        quizList.remove(position);
+        notifyDataSetChanged();
+        MyQuizzesActivity.setMoreVisibility(false);
     }
     private void edit(int position){
         context.startActivity(new Intent(context, EditQuizActivity.class)
