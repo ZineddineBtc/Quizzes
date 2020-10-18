@@ -7,7 +7,16 @@ public class Quiz {
     private String poster, id, description, correct, wrong0, wrong1, time;
     private long correctCount, wrongCount, likesCount, dislikesCount, correctIndex,
             posterDefinedHardness, userDefinedHardness;
+    private boolean edited;
     private ArrayList<String> interestsIncluded, likesUsers, dislikesUsers, answersUsers;
+
+    public boolean isEdited() {
+        return edited;
+    }
+
+    public void setEdited(boolean edited) {
+        this.edited = edited;
+    }
 
     public long getPosterDefinedHardness() {
         return posterDefinedHardness;

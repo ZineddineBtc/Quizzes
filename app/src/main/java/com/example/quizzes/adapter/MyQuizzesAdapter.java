@@ -2,7 +2,10 @@ package com.example.quizzes.adapter;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,11 +14,13 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.quizzes.R;
 import com.example.quizzes.StaticClass;
+import com.example.quizzes.activity.core.EditQuizActivity;
 import com.example.quizzes.model.Quiz;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -27,7 +32,7 @@ public class MyQuizzesAdapter extends RecyclerView.Adapter<MyQuizzesAdapter.View
     private List<Quiz> quizList;;
     private LayoutInflater mInflater;
     private ItemClickListener mClickListener;
-    Context context;
+    private Context context, alertDialogContext;
 
     public MyQuizzesAdapter(Context context, List<Quiz> quizList) {
         this.mInflater = LayoutInflater.from(context);
@@ -37,7 +42,7 @@ public class MyQuizzesAdapter extends RecyclerView.Adapter<MyQuizzesAdapter.View
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = mInflater.inflate(R.layout.quiz_row, parent, false);
+        View view = mInflater.inflate(R.layout.my_quiz_row, parent, false);
         return new ViewHolder(view);
     }
 
@@ -47,9 +52,9 @@ public class MyQuizzesAdapter extends RecyclerView.Adapter<MyQuizzesAdapter.View
         holder.usernameTV.setText(holder.sharedPreferences.getString(StaticClass.USERNAME, "no username"));
         setPercentage(holder, position);
         setAlreadyAnswered(holder, position);
+        setDescription(holder, position);
         setLikesCount(holder, position);
         setDislikesCount(holder, position);
-        holder.descriptionTV.setText(quizList.get(position).getDescription());
         randomizeAnswer(holder, position);
         setListeners(holder, position);
         setLikedOrDisliked(holder, position);
@@ -67,11 +72,19 @@ public class MyQuizzesAdapter extends RecyclerView.Adapter<MyQuizzesAdapter.View
         }
         holder.percentageTV.setText(percent);
     }
-
     private void setAlreadyAnswered(ViewHolder holder, int position){
         if(quizList.get(position).getAnswersUsers().contains(
                 holder.sharedPreferences.getString(StaticClass.EMAIL, " "))){
             holder.alreadyAnsweredTV.setVisibility(View.VISIBLE);
+        }
+    }
+    @SuppressLint("SetTextI18n")
+    private void setDescription(ViewHolder holder, int position){
+        if(quizList.get(position).isEdited()){
+            holder.descriptionTV.setText("(Edited) "+
+                    quizList.get(position).getDescription());
+        }else{
+            holder.descriptionTV.setText(quizList.get(position).getDescription());
         }
     }
     private void setLikesCount(ViewHolder holder, int position){
@@ -124,6 +137,16 @@ public class MyQuizzesAdapter extends RecyclerView.Adapter<MyQuizzesAdapter.View
         holder.dislikesIV.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) { dislikeOnClickListener(holder, position); }});
+        holder.moreIV.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                edit(position);
+            }
+        });
+    }
+    private void edit(int position){
+        context.startActivity(new Intent(context, EditQuizActivity.class)
+        .putExtra(StaticClass.QUIZ_ID, quizList.get(position).getId()));
     }
     private void randomizeAnswer(ViewHolder holder, int position){
         switch ((int) quizList.get(position).getCorrectIndex()){
@@ -325,7 +348,8 @@ public class MyQuizzesAdapter extends RecyclerView.Adapter<MyQuizzesAdapter.View
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         LinearLayout hardnessLL;
         SeekBar hardnessSB;
-        ImageView photoIV, answer0IV, answer1IV, answer2IV, likesIV, dislikesIV, resultIV;
+        ImageView photoIV, answer0IV, answer1IV, answer2IV, likesIV, dislikesIV, resultIV,
+                    moreIV;
         TextView usernameTV, descriptionTV, answer0TV, answer1TV, answer2TV,
                  likesCountTV, dislikesCountTV, percentageTV, alreadyAnsweredTV, hardnessTV;
         RecyclerView interestsIncludedRV;
@@ -338,9 +362,10 @@ public class MyQuizzesAdapter extends RecyclerView.Adapter<MyQuizzesAdapter.View
             findViewsByIds();
             database = FirebaseFirestore.getInstance();
             sharedPreferences = itemView.getContext().getSharedPreferences(StaticClass.SHARED_PREFERENCES, Context.MODE_PRIVATE);
-
+            alertDialogContext = itemView.getContext();
         }
         void findViewsByIds(){
+            moreIV = itemView.findViewById(R.id.editIV);
             hardnessTV = itemView.findViewById(R.id.hardnessTV);
             hardnessLL = itemView.findViewById(R.id.hardnessLL);
             hardnessSB = itemView.findViewById(R.id.hardnessSB);
@@ -362,7 +387,31 @@ public class MyQuizzesAdapter extends RecyclerView.Adapter<MyQuizzesAdapter.View
             percentageTV = itemView.findViewById(R.id.percentageTV);
             alreadyAnsweredTV = itemView.findViewById(R.id.alreadyAnsweredTV);
         }
+        void edit(){
+            /*new AlertDialog.Builder(alertDialogContext)
+                    .setTitle("Delete Record")
+                    .setMessage("Are you sure you want to delete this record?")
+                    .setPositiveButton(
+                            Html.fromHtml("<font color=\"#3b7f8d\"> Edit </font>"),
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
 
+                                }
+                            })
+                    .setPositiveButton(
+                            Html.fromHtml("<font color=\"#FF0000\"> Delete </font>"),
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                }
+                            })
+                    .setNegativeButton(
+                            Html.fromHtml("<font color=\"#000000\"> Cancel </font>"),
+                            null)
+                    .show();
+             */
+
+        }
         @Override
         public void onClick(View view) {
             if (mClickListener != null)

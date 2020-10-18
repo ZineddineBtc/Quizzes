@@ -50,7 +50,7 @@ public class MyQuizzesActivity extends AppCompatActivity {
         getMyQuizzes();
     }
     private void getMyQuizzes(){
-        database.collection("bookmark")
+        database.collection("quizzes")
                 .whereEqualTo("poster",
                         getSharedPreferences(StaticClass.SHARED_PREFERENCES, MODE_PRIVATE)
                                 .getString(StaticClass.EMAIL, " "))

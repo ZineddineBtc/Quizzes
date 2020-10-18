@@ -57,10 +57,10 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
         setPoster(holder, position);
         setPercentage(holder, position);
         setAlreadyAnswered(holder, position);
+        setDescription(holder, position);
         setBookmarked(holder, position);
         setLikesCount(holder, position);
         setDislikesCount(holder, position);
-        holder.descriptionTV.setText(quizList.get(position).getDescription());
         randomizeAnswer(holder, position);
         setListeners(holder, position);
         setLikedOrDisliked(holder, position);
@@ -101,6 +101,15 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
             percent.append("?%");
         }
         holder.percentageTV.setText(percent);
+    }
+    @SuppressLint("SetTextI18n")
+    private void setDescription(ViewHolder holder, int position){
+        if(quizList.get(position).isEdited()){
+            holder.descriptionTV.setText("(Edited) "+
+                    quizList.get(position).getDescription());
+        }else{
+            holder.descriptionTV.setText(quizList.get(position).getDescription());
+        }
     }
     private void setBookmarked(ViewHolder holder, int position){
         if(holder.userBookmark != null){

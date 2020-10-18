@@ -1,15 +1,18 @@
 package com.example.quizzes.activity.core;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.Html;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -21,7 +24,7 @@ import android.widget.TextView;
 import com.example.quizzes.R;
 import com.example.quizzes.StaticClass;
 import com.example.quizzes.adapter.InterestsIncludedAdapter;
-import com.example.quizzes.adapter.IncludingInterestsAdapter;
+import com.example.quizzes.adapter.AllInterestsAdapter;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
@@ -30,6 +33,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.Random;
 
 public class CreateQuizActivity extends AppCompatActivity {
@@ -41,7 +45,7 @@ public class CreateQuizActivity extends AppCompatActivity {
     RecyclerView allInterestsRV, interestsIncludedRV;
     SharedPreferences sharedPreferences;
     FirebaseFirestore database;
-    IncludingInterestsAdapter includingInterestsAdapter;
+    AllInterestsAdapter allInterestsAdapter;
     public static InterestsIncludedAdapter interestsIncludedAdapter;
     public static ArrayList<String> interestsIncluded = new ArrayList<>();
     String description, correctAnswer, wrongAnswer0, wrongAnswer1;
@@ -53,6 +57,7 @@ public class CreateQuizActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_quiz);
+        setActionBarTitle("Create Quiz");
         database = FirebaseFirestore.getInstance();
         sharedPreferences = getSharedPreferences(StaticClass.SHARED_PREFERENCES, MODE_PRIVATE);
         findViewsByIds();
@@ -74,11 +79,11 @@ public class CreateQuizActivity extends AppCompatActivity {
         setRecyclerViews();
     }
     private void setRecyclerViews(){
-        includingInterestsAdapter = new IncludingInterestsAdapter(getApplicationContext(),
+        allInterestsAdapter = new AllInterestsAdapter(getApplicationContext(),
                 StaticClass.allInterests);
         allInterestsRV.setLayoutManager(new LinearLayoutManager(getApplicationContext(),
                 LinearLayoutManager.VERTICAL, false));
-        allInterestsRV.setAdapter(includingInterestsAdapter);
+        allInterestsRV.setAdapter(allInterestsAdapter);
         interestsIncludedAdapter = new InterestsIncludedAdapter(getApplicationContext(),
                 interestsIncluded);
         interestsIncludedRV.setLayoutManager(new LinearLayoutManager(getApplicationContext(),
@@ -156,6 +161,7 @@ public class CreateQuizActivity extends AppCompatActivity {
         quizReference.put("likes-users", new ArrayList<String>());
         quizReference.put("dislikes-users", new ArrayList<String>());
         quizReference.put("answers-users", new ArrayList<String>());
+        quizReference.put("edited", false);
     }
     private void arrayUnionQuizToUserDocument(DocumentReference doc){
         database.collection("users")
@@ -202,5 +208,36 @@ public class CreateQuizActivity extends AppCompatActivity {
                 startActivity(new Intent(getApplicationContext(), CoreActivity.class));
             }
         }, 600);
+    }
+    public void setActionBarTitle(String title){
+        Objects.requireNonNull(getSupportActionBar()).setHomeAsUpIndicator(R.drawable.ic_arrow_back_white);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
+        Objects.requireNonNull(getSupportActionBar()).setTitle(
+                Html.fromHtml("<font color=\"#ffffff\"> "+title+" </font>")
+        );
+    }
+    @Override
+    public void onBackPressed() {
+        new AlertDialog.Builder(this)
+                .setTitle("Discard the quiz")
+                .setMessage("Are you sure you want to discard the quiz?")
+                .setPositiveButton(
+                        Html.fromHtml("<font color=\"#770000\"> Discard </font>"),
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                startActivity(new Intent(getApplicationContext(), CoreActivity.class)
+                                .putExtra(StaticClass.TO, StaticClass.TIMELINE));
+                            }
+                        })
+                .setNegativeButton(
+                        Html.fromHtml("<font color=\"#3b7f8d\"> Cancel </font>"),
+                        null)
+                .show();
+    }
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return true;
     }
 }

@@ -18,6 +18,7 @@ public class StaticClass {
     public static String PHOTO = "photo";
     public static String BIO = "bio";
     public static String PROFILE_ID = "profile";
+    public static String QUIZ_ID = "quiz_id";
     public static String mySimpleDateFormat = "dd-MM-yyyy";
     public static String TO = "to";
     public static String FROM = "from";

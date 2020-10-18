@@ -33,9 +33,12 @@ public class CoreActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(navView, navController);
         if(getIntent().getStringExtra(StaticClass.TO) != null) {
-            if (getIntent().getStringExtra(StaticClass.TO)
+            if(getIntent().getStringExtra(StaticClass.TO)
                     .equals(StaticClass.PROFILE_FRAGMENT)) {
                 navView.setSelectedItemId(R.id.navigation_profile);
+            }else if(getIntent().getStringExtra(StaticClass.TO)
+                    .equals(StaticClass.TIMELINE)) {
+                navView.setSelectedItemId(R.id.navigation_timeline);
             }
         }
     }
