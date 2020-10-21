@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,11 +24,14 @@ import com.example.quizzes.StaticClass;
 import com.example.quizzes.activity.core.ProfileActivity;
 import com.example.quizzes.model.Quiz;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,7 +71,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
         setLikedOrDisliked(holder, position);
         setRecyclerView(holder, position);
     }
-    private void setPoster(final ViewHolder holder, int position){
+    private void setPoster(final ViewHolder holder, final int position){
         holder.database.collection("users")
                 .document(quizList.get(position).getPoster())
                 .get()
@@ -77,12 +82,33 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
                             DocumentSnapshot document = task.getResult();
                             if(document.exists()){
                                 holder.usernameTV.setText(document.get("username").toString());
+                                boolean hasPhoto = (boolean) document.get("hasPhoto");
+                                if(hasPhoto){
+                                    setPosterPhoto(holder, position);
+                                }
                             }
                         }else{
                             Toast.makeText(context, "task is not successful", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
+    }
+    private void setPosterPhoto(final ViewHolder holder, int position){
+        final long ONE_MEGABYTE = 1024 * 1024;
+        holder.storage.getReference(quizList.get(position).getPoster())
+                .getBytes(ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
+            @Override
+            public void onSuccess(byte[] bytes) {
+                Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                holder.photoIV.setImageBitmap(Bitmap.createScaledBitmap(bmp, holder.photoIV.getWidth(),
+                        holder.photoIV.getHeight(), false));
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception exception) {
+                Toast.makeText(context, "Failure", Toast.LENGTH_LONG).show();
+            }
+        });
     }
     private void setAlreadyAnswered(ViewHolder holder, int position){
         if(quizList.get(position).getAnswersUsers().contains(
@@ -421,6 +447,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
         SeekBar hardnessSB;
         RecyclerView interestsIncludedRV;
         FirebaseFirestore database;
+        FirebaseStorage storage;
         SharedPreferences sharedPreferences;
         boolean answerDisplayed, oldHardnessShown, liked, disliked, bookmarked;
         Context context;
@@ -431,6 +458,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.ViewHo
             context = itemView.getContext();
             findViewsByIds();
             database = FirebaseFirestore.getInstance();
+            storage = FirebaseStorage.getInstance();
             sharedPreferences = itemView.getContext().getSharedPreferences(StaticClass.SHARED_PREFERENCES, Context.MODE_PRIVATE);
             userBookmark = (ArrayList<String>) userDocument.get("bookmark");
         }

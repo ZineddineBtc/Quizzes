@@ -356,13 +356,14 @@ public class ProfileFragment extends Fragment {
                         photoOptionsShown = false;
                     }
                 }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                progressDialog.dismiss();
-                Toast.makeText(context, "Uploaded!", Toast.LENGTH_LONG).show();
-                shadeLL.setVisibility(View.GONE);
-                photoOptionsLL.setVisibility(View.GONE);
-                photoOptionsShown = false;
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        progressDialog.dismiss();
+                        Toast.makeText(context, "Uploaded!", Toast.LENGTH_LONG).show();
+                        shadeLL.setVisibility(View.GONE);
+                        photoOptionsLL.setVisibility(View.GONE);
+                        photoOptionsShown = false;
+                        setHasPhoto(true);
             }
         });
     }
@@ -398,8 +399,14 @@ public class ProfileFragment extends Fragment {
                 photoOptionsLL.setVisibility(View.GONE);
                 photoIV.setImageDrawable(context.getDrawable(R.drawable.ic_account_circle_grey));
                 photoOptionsShown = false;
+                setHasPhoto(false);
             }
         });
+    }
+    private void setHasPhoto(boolean hasPhoto){
+        database.collection("users")
+                .document(email)
+                .update("hasPhoto", hasPhoto);
     }
     private void editUsername(){
         if(editing){

@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,7 +13,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -20,9 +24,11 @@ import com.example.quizzes.StaticClass;
 import com.example.quizzes.activity.core.EditQuizActivity;
 import com.example.quizzes.activity.core.MyQuizzesActivity;
 import com.example.quizzes.model.Quiz;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
 
 import java.util.List;
 
@@ -48,7 +54,6 @@ public class MyQuizzesAdapter extends RecyclerView.Adapter<MyQuizzesAdapter.View
     @SuppressLint("SetTextI18n")
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
-        holder.usernameTV.setText(holder.sharedPreferences.getString(StaticClass.USERNAME, "no username"));
         setPercentage(holder, position);
         setAlreadyAnswered(holder, position);
         setDescription(holder, position);
@@ -383,6 +388,7 @@ public class MyQuizzesAdapter extends RecyclerView.Adapter<MyQuizzesAdapter.View
         RecyclerView interestsIncludedRV;
         boolean answerDisplayed, oldHardnessShown, liked, disliked;
         FirebaseFirestore database;
+        FirebaseStorage storage;
         SharedPreferences sharedPreferences;
 
         public ViewHolder(final View itemView) {
@@ -391,6 +397,23 @@ public class MyQuizzesAdapter extends RecyclerView.Adapter<MyQuizzesAdapter.View
             database = FirebaseFirestore.getInstance();
             sharedPreferences = itemView.getContext().getSharedPreferences(StaticClass.SHARED_PREFERENCES, Context.MODE_PRIVATE);
             alertDialogContext = itemView.getContext();
+            usernameTV.setText(sharedPreferences.getString(StaticClass.USERNAME, "no username"));
+            storage = FirebaseStorage.getInstance();
+            final long ONE_MEGABYTE = 1024 * 1024;
+            storage.getReference(sharedPreferences.getString(StaticClass.EMAIL, "no username"))
+                    .getBytes(ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
+                @Override
+                public void onSuccess(byte[] bytes) {
+                    Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                    photoIV.setImageBitmap(Bitmap.createScaledBitmap(bmp, photoIV.getWidth(),
+                            photoIV.getHeight(), false));
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception exception) {
+                    Toast.makeText(context, "Failure", Toast.LENGTH_LONG).show();
+                }
+            });
         }
         void findViewsByIds(){
             moreIV = itemView.findViewById(R.id.editIV);

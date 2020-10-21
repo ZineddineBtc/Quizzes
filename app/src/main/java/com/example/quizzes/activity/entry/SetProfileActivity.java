@@ -195,6 +195,7 @@ public class SetProfileActivity extends AppCompatActivity {
         userReference.put("following", new ArrayList<>());
         userReference.put("followers-count", 0);
         userReference.put("following-count", 0);
+        userReference.put("hasPhoto", false);
         database.collection("users")
                 .document(email)
                 .set(userReference)
