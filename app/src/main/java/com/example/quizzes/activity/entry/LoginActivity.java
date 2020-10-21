@@ -108,7 +108,7 @@ public class LoginActivity extends AppCompatActivity {
                                 document.getId(),
                                 String.valueOf(document.get("username")),
                                 String.valueOf(document.get("bio")),
-                                Long.valueOf((String) document.get("score")),
+                                (Long) document.get("score"),
                                 new HashSet<>(interests));
                     }
                 } else {

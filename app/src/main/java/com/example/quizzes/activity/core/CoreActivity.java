@@ -50,6 +50,10 @@ public class CoreActivity extends AppCompatActivity {
                 ProfileFragment.networkLL.setVisibility(View.GONE);
                 ProfileFragment.shadeLL.setVisibility(View.GONE);
                 ProfileFragment.networkShown = false;
+            }else if(ProfileFragment.photoFullScreen){
+                ProfileFragment.shadeLL.setVisibility(View.GONE);
+                ProfileFragment.photoFullScreenIV.setVisibility(View.GONE);
+                ProfileFragment.photoFullScreen = false;
             }
         }else{
             moveTaskToBack(true);

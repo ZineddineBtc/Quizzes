@@ -77,4 +77,7 @@
     <string name="no_followers">No followers</string>
     <string name="no_following">No following</string>
     <string name="more">More</string>
+    <string name="view_picture">View Picture</string>
+    <string name="upload_a_new_picture">Upload a new Picture</string>
+    <string name="delete">Delete</string>
 </resources>
