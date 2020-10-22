@@ -17,5 +17,5 @@ The app is open to any development idea related to social media or educative app
 - Follow other users to see their quizzes.<br/>
 - Answer quizzes that involve similar topics or are posted by your followings, upvote/downvote them, and rate their accuracy/hardness.<br/>
 
-## Probabilityy of further development
+## Probability of further development
 Low.
