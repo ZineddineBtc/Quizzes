@@ -8,13 +8,19 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -37,7 +43,11 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.UploadTask;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -55,9 +65,10 @@ public class SetProfileActivity extends AppCompatActivity {
     Button finishButton;
     ProgressDialog progressDialog;
     FirebaseFirestore database;
+    FirebaseStorage storage;
     SharedPreferences sharedPreferences;
     String username, email;
-    boolean usernameTaken, usernameChecked;
+    boolean usernameTaken, usernameChecked, hasPhoto;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +77,7 @@ public class SetProfileActivity extends AppCompatActivity {
         Objects.requireNonNull(getSupportActionBar()).hide();
         sharedPreferences = getSharedPreferences(StaticClass.SHARED_PREFERENCES, MODE_PRIVATE);
         database = FirebaseFirestore.getInstance();
+        storage = FirebaseStorage.getInstance();
         findViewsByIds();
         progressDialog = new ProgressDialog(this);
         checkBuildVersion();
@@ -174,6 +186,49 @@ public class SetProfileActivity extends AppCompatActivity {
             }
         });
     }
+    public void importImage(View view){
+        Intent intent;
+        intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        intent.setType("image/*");
+        startActivityForResult(
+                Intent.createChooser(intent, "Select Images"),
+                StaticClass.PICK_SINGLE_IMAGE);
+    }
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == StaticClass.PICK_SINGLE_IMAGE && resultCode == Activity.RESULT_OK) {
+            if (data == null) {
+                Toast.makeText(getApplicationContext(), "ERROR", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            Uri uri = data.getData();
+            if(uri != null){
+                final int takeFlags = data.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION;
+                ContentResolver resolver = getApplicationContext().getContentResolver();
+                resolver.takePersistableUriPermission(uri, takeFlags);
+
+                Bitmap imageBitmap = null;
+                try {
+                    imageBitmap = MediaStore.Images.Media.getBitmap(
+                            getApplicationContext().getContentResolver(), uri);
+                } catch (IOException e) {
+                    Toast.makeText(getApplicationContext(), "IO Exception when selecting a profile image",
+                            Toast.LENGTH_LONG).show();
+                }
+                photoIV.setImageBitmap(imageBitmap);
+            }
+        }
+    }
+    private byte[] getPhotoData(){
+        Bitmap bitmap = ((BitmapDrawable) photoIV.getDrawable()).getBitmap();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        return baos.toByteArray();
+    }
     private void writeSharedPreferences(){
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(StaticClass.USERNAME, username);
@@ -181,7 +236,31 @@ public class SetProfileActivity extends AppCompatActivity {
         editor.putString(StaticClass.EMAIL, email);
         editor.putLong(StaticClass.SCORE, 0);
         editor.apply();
-        writeOnlineDatabase();
+        if(photoIV.getDrawable()!=getDrawable(R.drawable.ic_account_circle_grey)){
+            uploadPhoto();
+        }else{
+            writeOnlineDatabase();
+        }
+    }
+    private void uploadPhoto(){
+        byte[] data = getPhotoData();
+        storage.getReference().child(email)
+                .putBytes(data)
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception exception) {
+                        progressDialog.dismiss();
+                        Toast.makeText(getApplicationContext(), "Uploading photo failed", Toast.LENGTH_LONG).show();
+                    }
+                }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        progressDialog.dismiss();
+                        Toast.makeText(getApplicationContext(), "Uploaded!", Toast.LENGTH_LONG).show();
+                        writeOnlineDatabase();
+                        hasPhoto = true;
+            }
+        });
     }
     private void writeOnlineDatabase(){
         Map<String, Object> userReference = new HashMap<>();
@@ -195,7 +274,7 @@ public class SetProfileActivity extends AppCompatActivity {
         userReference.put("following", new ArrayList<>());
         userReference.put("followers-count", 0);
         userReference.put("following-count", 0);
-        userReference.put("hasPhoto", false);
+        userReference.put("hasPhoto", hasPhoto);
         database.collection("users")
                 .document(email)
                 .set(userReference)
