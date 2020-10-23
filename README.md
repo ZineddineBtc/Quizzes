@@ -7,7 +7,15 @@ The other users can try to solve this quiz and either upvote it or downvote it/<
 When answering a quiz, the user can rate the hardness of a quiz.
 
 ## Libraries and APIs
-The app uses Firebase authentication and Firestore (NoSQL database). Also SQLite is used for offline database (bookmarks, history...).<br/>
+The app uses Firebase authentication, Firestore (NoSQL database), and Firebase storage. Also SQLite is used for offline database (bookmarks, history...).<br/>
 
 ## Future development
 The app is open to any development idea related to social media or educative apps.
+
+## Final Summary
+- Create a profile containing basic info such as: photo, username, bio, and interesting topics.<br/>
+- Follow other users to see their quizzes.<br/>
+- Answer quizzes that involve similar topics or are posted by your followings, upvote/downvote them, and rate their accuracy/hardness.<br/>
+
+## Probability of further development
+Low.
